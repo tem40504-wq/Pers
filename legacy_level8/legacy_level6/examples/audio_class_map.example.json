@@ -1,0 +1,6 @@
+{
+  "enemy_attack": 0,
+  "low_hp_warning": 1,
+  "victory": 2,
+  "level_up": 3
+}

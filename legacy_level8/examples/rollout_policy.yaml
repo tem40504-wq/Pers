@@ -1,0 +1,10 @@
+{
+  "critical": ["unit", "integration", "replay", "sandbox", "shadow", "ab", "production"],
+  "secondary": ["unit", "integration"],
+  "experimental": ["unit", "integration", "replay", "sandbox", "shadow", "ab", "production"],
+  "default": ["unit", "integration", "replay", "sandbox", "shadow", "ab", "production"],
+  "minimum_coverage": 0.80,
+  "sandbox_minutes": 15,
+  "shadow_minutes": 60,
+  "ab_sessions_each": 30
+}

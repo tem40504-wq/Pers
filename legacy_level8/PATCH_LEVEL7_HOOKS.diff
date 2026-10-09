@@ -1,0 +1,35 @@
+--- UniversalGameAgent_v7_MobileHub/mobile_core/agent.py	2026-10-09 18:16:26.505079675 +0000
++++ UniversalGameAgent_v8_SafeRollout/mobile_core/agent.py	2026-10-09 18:27:46.312988929 +0000
+@@ -22,6 +22,14 @@
+         if not self.security.emergency.allowed():return False
+         self.paused=False;return True
+     def panic(self):self.security.emergency.panic();self.paused=True
++    def postprocess_decision(self, obs, decision):
++        # Обратная совместимость: базовый агент всегда возвращает прежнее решение.
++        return decision
++
++    def on_cycle_complete(self, obs, decision, result, frame):
++        # Необязательная точка расширения для тестовых логов Level 8.
++        pass
++
+     def status(self):
+         o=self.last_observation
+         return {'mode':self.mode.value,'paused':self.paused,'panic':self.security.emergency.stopped,
+@@ -74,7 +82,8 @@
+                     if time.monotonic()-last_slow>=self.slow_interval and not self._busy:
+                         last_slow=time.monotonic();self._busy=True
+                         t=asyncio.create_task(self._slow(frame,meta));tasks.add(t);t.add_done_callback(tasks.discard)
+-                d=self.tactician.decide(obs);self.last_decision=d
++                d=self.postprocess_decision(obs,self.tactician.decide(obs))
++                self.last_decision=d
+                 known=d.skill_id in self.tactician.skills.skills
+                 permitted=self.security.validate(d,obs,known)
+                 status='wait'
+@@ -92,6 +101,7 @@
+                 if self.security.audit:
+                     self.security.audit.append('action',{'kind':d.kind,'skill':d.skill_id,'status':status})
+                 self.memory.add(self.game,'action',{'skill':d.skill_id,'status':status,'reason':d.reason})
++                self.on_cycle_complete(obs,d,status,frame)
+                 cycle+=1
+                 await asyncio.sleep(max(0.,self.fast_interval-(time.monotonic()-began)))
+         finally:

@@ -1,0 +1,22 @@
+--- a/game_agent/l5/agent_l5.py
++++ b/game_agent/l5/agent_l5.py
+@@ -168,9 +168,19 @@
+                 obs=self.vision.observe(screenshot,now=self.clock())
+                 after=self.extractor.extract(obs,timestamp=self.clock())
+                 self.world.learn(self._pending_state,self._pending_action,after)
++                # L6: необязательный hook после подтверждённого перехода.
++                # В Level5Agent это no-op; L3/L4 логика не меняется.
++                try:
++                    self.on_verified_transition(self._pending_state,self._pending_action,after)
++                except Exception as hook_error:
++                    LOG.warning("L6 hook пропущен, L5 продолжает: %s",hook_error)
+             except Exception as ex:
+                 LOG.warning("Пропущено обучение модели мира: %s",ex)
+         return result
++
++    def on_verified_transition(self,before,action,after):
++        """Точка расширения: старый агент не обязан использовать L6."""
++        return None
+ 
+     def run(self,max_steps=None):
+         """Старый step; дополнительная проверка panic между действиями."""

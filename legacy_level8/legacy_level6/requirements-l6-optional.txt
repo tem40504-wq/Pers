@@ -1,0 +1,3 @@
+# Level 6 default modules use only Python standard library.
+# Existing Level 3-5 dependencies still apply; PermissionGate handles missing packages.
+# Optional server, trainer or advanced physics backends are NOT installed automatically.

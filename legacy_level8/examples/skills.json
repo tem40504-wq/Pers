@@ -1,0 +1,4 @@
+{
+  "open_map": {"label":"safe_map_button", "action":"tap", "approved":true},
+  "inspect_quest": {"label":"safe_quest_button", "action":"tap", "approved":true}
+}

@@ -1,0 +1,6 @@
+# Не обязательны: ядро L4 работает поверх requirements.txt из старой версии.
+# Для классификаторов ONNX (экспорт и pre/postprocessing отдельно):
+onnxruntime>=1.18
+# Для необязательного HID-адаптера:
+pyserial>=3.5
+# ChromaDB, YOLO, OCR — через прежний requirements-optional.txt

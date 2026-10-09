@@ -1,0 +1,47 @@
+--- a/game_agent/agent.py
++++ b/game_agent/agent.py
+@@ -37,12 +37,20 @@
+         self.was_game_over = False
+         self.no_change = 0
+ 
++    def choose_action(self, obs, now):
++        """Совместимая точка подключения новых стратегий (L3 по умолчанию)."""
++        return self.brain.decide(obs, lessons=self.memory.recent_lessons(), now=now)
++
++    def extra_event(self, obs, action, status) -> dict:
++        """Необязательные данные для JSONL. В L3 сохраняется прежнее поведение."""
++        return {}
++
+     def step(self) -> dict:
+         before = self.device.screenshot_png()
+         obs = self.vision.observe(before, now=self.clock())
+         if self.explorer:
+             self.explorer.register(obs)
+-        goal, action = self.brain.decide(obs, lessons=self.memory.recent_lessons(), now=self.clock())
++        goal, action = self.choose_action(obs, self.clock())
+         if self.explorer and not obs.game_over:
+             action = self.explorer.propose(obs)
+         if self.no_change >= 4:
+@@ -64,7 +72,8 @@
+             "state": obs.state, "scene_id": obs.scene_id, "goal": goal,
+             "action": action.as_dict(), "status": status,
+             "text": " | ".join(t.text for t in obs.text[:25]),
+-            "change": round(delta, 4), "next_scene": next_obs.scene_id
++            "change": round(delta, 4), "next_scene": next_obs.scene_id,
++            **self.extra_event(obs, action, status)
+         }, before=before, after=after)
+         if self.explorer and status.startswith("executed"):
+             self.explorer.connect(obs, next_obs, action, status)
+--- a/game_agent/memory.py
++++ b/game_agent/memory.py
+@@ -84,7 +84,9 @@
+         return (f"game={row.get('game')} state={row.get('state')} goal={row.get('goal')} "
+                 f"action={row.get('action')} status={row.get('status')} "
+                 f"OCR={row.get('text', '')} result={row.get('change')} "
+-                f"lesson={row.get('lesson', '')}")[:8000]
++                f"lesson={row.get('lesson', '')} "
++                f"L4_state={json.dumps(row.get('l4_state', {}), ensure_ascii=False)} "
++                f"L4_prediction={json.dumps(row.get('l4_prediction', {}), ensure_ascii=False)}")[:8000]
+ 
+     def _index(self, row: dict) -> None:
+         doc = self._document(row)

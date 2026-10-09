@@ -1,0 +1,7 @@
+# Примеры синтаксиса (не выполнять как Python):
+IF enemy_mage AND hp < 20% THEN use_potion('magic_resist')
+IF hp < 20% THEN use_potion('heal')
+IF predicted_hp < 25% AND enemy_mage THEN use_potion('heal')
+IF game_over THEN wait()
+# Неизвестный навык остаётся wait; use_potion работает только после ручной регистрации
+# подтверждённой иконки с известным YOLO-label (SkillRegistry).
