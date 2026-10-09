@@ -16,6 +16,10 @@ from bootstrap.permissions import BatchPermissionGate
 ROOT = Path(__file__).resolve().parent
 
 def main(argv=None):
+    # Windows redirected stdout may use cp1252; Russian permission text needs UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(encoding='utf-8', errors='replace')
     p = argparse.ArgumentParser()
     p.add_argument('--prepare', action='store_true', help='Download pinned test/base artifacts and install only into .venv')
     p.add_argument('--yes', action='store_true', help='Explicit unattended approval for --prepare (e.g. CI)')
