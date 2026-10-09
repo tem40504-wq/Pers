@@ -385,14 +385,15 @@
   ],
   "windows_runtime_test": "PASS",
   "windows_execution": {
-    "run_id": 37978533875,
-    "job_id": 113982856072,
-    "url": "https://github.com/tem40504-wq/Pers/actions/runs/37978533875",
-    "commit": "003642b9166f0780140b7fbf643eb35ad95dc3e3",
+    "run_id": 37980083131,
+    "job_id": 113988068727,
+    "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+    "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
     "conclusion": "success",
-    "os": "Windows Server 2022 x64",
+    "os": "Windows-2022Server-10.0.20348-SP0",
     "python": "3.13.14",
-    "scope": "Base wheels, pip check, ADB version, tests_l9 and Level 8, bootstrap report; no phone/GPU"
+    "tests_passed": 85,
+    "scope": "Base + seven optional CPU smokes, pip check, ADB version, tests_l9 and Level 8; no phone/GPU"
   },
   "optional_audit": "verification_optional_windows.json"
 }

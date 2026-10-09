@@ -1,6 +1,6 @@
 # Установка на Windows 10/11
 
-Для v9.1 начните с `WINDOWS_VERIFIED_RU.md`: закреплён профиль Windows x64 / CPython 3.13 и есть `RUN_WINDOWS_TESTS.bat`.
+Для v9.2 начните с `WINDOWS_VERIFIED_RU.md`: закреплён профиль Windows x64 / CPython 3.13 и есть `RUN_WINDOWS_TESTS.bat`.
 
 ## 1. Подготовка телефона Samsung
 

@@ -55,7 +55,7 @@
 
 ## Исполнение и интеграция
 
-Базовый набор уже успешно испытан на Windows Server 2022 / Python 3.13.14. Для семи дополнительных библиотек подготовлен замкнутый профиль: SciPy, PyYAML, NetworkX, pytest-asyncio, pytesseract, PyAV, FAISS. Повторный Windows-запуск проверяет вычисления, работу со звуком, поиск соседей и импорты. Импорт pytest-asyncio не равен испытанию асинхронных тестов; pytesseract проверяется на обработке изображения, без запуска OCR-движка.
+Базовый набор уже успешно испытан на Windows Server 2022 / Python 3.13.14. Для семи дополнительных библиотек подготовлен замкнутый профиль: SciPy, PyYAML, NetworkX, pytest-asyncio, pytesseract, PyAV, FAISS. Повторный Windows-запуск успешно проверил вычисления, работу со звуком, поиск соседей и импорты. Все 85 тестов также прошли. Отчёт: `WINDOWS_SERVER_2022_REPORT.json`; CI: https://github.com/tem40504-wq/Pers/actions/runs/37980083131 . Импорт pytest-asyncio не равен испытанию асинхронных тестов; pytesseract проверяется на обработке изображения, без запуска OCR-движка.
 
 ```powershell
 py -3.13 run_windows_tests.py --prepare --optional-smoke

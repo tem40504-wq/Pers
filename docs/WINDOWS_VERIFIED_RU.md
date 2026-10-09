@@ -52,7 +52,7 @@ py -3.13 -m bootstrap.bootstrap --profile windows-screen
 
 ## Аудит дополнений и реальное исполнение
 
-Базовый CI выполнен успешно: https://github.com/tem40504-wq/Pers/actions/runs/37978533875 . Windows Server 2022 x64 / CPython 3.13.14, pip check, импорты, adb.exe и тесты. Это не испытания на ПК/телефоне владельца.
+Базовый CI выполнен успешно: https://github.com/tem40504-wq/Pers/actions/runs/37980083131 . Windows Server 2022 x64 / CPython 3.13.14, pip check, импорты, adb.exe и тесты. Это не испытания на ПК/телефоне владельца.
 
 Все 44 дополнительные позиции рассмотрены. Для 37 закреплены файлы или полные комплекты; 7 ограничены оборудованием, совместимостью либо отсутствием весов. См. `OPTIONAL_AUDIT_RU.md` и `bootstrap/verification_optional_windows.json`.
 

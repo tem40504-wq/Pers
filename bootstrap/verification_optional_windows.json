@@ -13,7 +13,7 @@
     "BLOCKED_NO_PROJECT_WEIGHTS": 2
   },
   "artifact_check_scope": "Complete files downloaded; publisher SHA-256 or Git blob digest matched. Microsoft/YAMNet: versioned official download and locally computed SHA-256 only.",
-  "windows_runtime_test": "NOT_RUN_FOR_OPTIONAL_PROFILE",
+  "windows_runtime_test": "PASS_FOR_SEVEN_COMPONENT_SMOKE_PROFILE",
   "components": [
     {
       "id": "pip",
@@ -181,7 +181,7 @@
         "ruff>=0.12.0; extra == \"dev\"",
         "cython-lint>=0.12.2; extra == \"dev\""
       ],
-      "runtime_test": "NOT_RUN",
+      "runtime_test": "PASS_LIMITED_CPU_SMOKE",
       "integration": "WINDOWS_OPTIONAL_SMOKE_PROFILE",
       "url": "https://files.pythonhosted.org/packages/93/0e/e0348fbc0dbab65c114cf78957e7dfeb49f8e8b556b4d930cc12ff195e18/scipy-1.18.1-cp313-cp313-win_amd64.whl",
       "filename": "scipy-1.18.1-cp313-cp313-win_amd64.whl",
@@ -201,7 +201,15 @@
           "status": "COMPATIBLE_PIN"
         }
       ],
-      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS"
+      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS",
+      "runtime_execution": {
+        "run_id": 37980083131,
+        "job_id": 113988068727,
+        "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+        "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
+        "conclusion": "success"
+      },
+      "runtime_scope": "CPU operations/imports; pytesseract image preprocessing, OCR engine not executed; pytest-asyncio import, plugin suite not executed"
     },
     {
       "id": "torch",
@@ -1114,7 +1122,7 @@
         "packaging>=21.3",
         "Pillow>=8.0.0"
       ],
-      "runtime_test": "NOT_RUN",
+      "runtime_test": "PASS_LIMITED_CPU_SMOKE",
       "integration": "WINDOWS_OPTIONAL_SMOKE_PROFILE",
       "url": "https://files.pythonhosted.org/packages/7a/33/8312d7ce74670c9d39a532b2c246a853861120486be9443eebf048043637/pytesseract-0.3.13-py3-none-any.whl",
       "filename": "pytesseract-0.3.13-py3-none-any.whl",
@@ -1139,7 +1147,15 @@
           "status": "COMPATIBLE_PIN"
         }
       ],
-      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS"
+      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS",
+      "runtime_execution": {
+        "run_id": 37980083131,
+        "job_id": 113988068727,
+        "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+        "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
+        "conclusion": "success"
+      },
+      "runtime_scope": "CPU operations/imports; pytesseract image preprocessing, OCR engine not executed; pytest-asyncio import, plugin suite not executed"
     },
     {
       "id": "av",
@@ -1148,7 +1164,7 @@
       "metadata_url": "https://pypi.org/pypi/av/19.0.1/json",
       "requires_python": ">=3.12",
       "requires_dist": [],
-      "runtime_test": "NOT_RUN",
+      "runtime_test": "PASS_LIMITED_CPU_SMOKE",
       "integration": "WINDOWS_OPTIONAL_SMOKE_PROFILE",
       "url": "https://files.pythonhosted.org/packages/e6/dc/a87a5a5e3ac462734f9befd8bad1447301e5802d8c111e22bf708fba7af3/av-19.0.1-cp312-abi3-win_amd64.whl",
       "filename": "av-19.0.1-cp312-abi3-win_amd64.whl",
@@ -1162,7 +1178,15 @@
       "reason": "Exact compatible wheel downloaded and SHA-256 matched PyPI; transitive dependency installation and runtime remain separate.",
       "upload_time": "2026-10-03T01:47:47.372565Z",
       "active_windows_dependencies": [],
-      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS"
+      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS",
+      "runtime_execution": {
+        "run_id": 37980083131,
+        "job_id": 113988068727,
+        "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+        "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
+        "conclusion": "success"
+      },
+      "runtime_scope": "CPU operations/imports; pytesseract image preprocessing, OCR engine not executed; pytest-asyncio import, plugin suite not executed"
     },
     {
       "id": "loguru",
@@ -1605,7 +1629,7 @@
       "metadata_url": "https://pypi.org/pypi/PyYAML/6.0.3/json",
       "requires_python": ">=3.8",
       "requires_dist": [],
-      "runtime_test": "NOT_RUN",
+      "runtime_test": "PASS_LIMITED_CPU_SMOKE",
       "integration": "WINDOWS_OPTIONAL_SMOKE_PROFILE",
       "url": "https://files.pythonhosted.org/packages/97/c9/39d5b874e8b28845e4ec2202b5da735d0199dbe5b8fb85f91398814a9a46/pyyaml-6.0.3-cp313-cp313-win_amd64.whl",
       "filename": "pyyaml-6.0.3-cp313-cp313-win_amd64.whl",
@@ -1619,7 +1643,15 @@
       "reason": "Exact compatible wheel downloaded and SHA-256 matched PyPI; transitive dependency installation and runtime remain separate.",
       "upload_time": "2025-09-25T21:32:33.659120Z",
       "active_windows_dependencies": [],
-      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS"
+      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS",
+      "runtime_execution": {
+        "run_id": 37980083131,
+        "job_id": 113988068727,
+        "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+        "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
+        "conclusion": "success"
+      },
+      "runtime_scope": "CPU operations/imports; pytesseract image preprocessing, OCR engine not executed; pytest-asyncio import, plugin suite not executed"
     },
     {
       "id": "pytest-asyncio",
@@ -1637,7 +1669,7 @@
         "coverage>=6.2; extra == \"testing\"",
         "hypothesis>=5.7.1; extra == \"testing\""
       ],
-      "runtime_test": "NOT_RUN",
+      "runtime_test": "PASS_LIMITED_CPU_SMOKE",
       "integration": "WINDOWS_OPTIONAL_SMOKE_PROFILE",
       "url": "https://files.pythonhosted.org/packages/03/e2/08a497ef684b88559c9cc5f4ad53a37e7b99e727094a86d6ea32536d5d3c/pytest_asyncio-1.4.0-py3-none-any.whl",
       "filename": "pytest_asyncio-1.4.0-py3-none-any.whl",
@@ -1657,7 +1689,15 @@
           "status": "COMPATIBLE_PIN"
         }
       ],
-      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS"
+      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS",
+      "runtime_execution": {
+        "run_id": 37980083131,
+        "job_id": 113988068727,
+        "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+        "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
+        "conclusion": "success"
+      },
+      "runtime_scope": "CPU operations/imports; pytesseract image preprocessing, OCR engine not executed; pytest-asyncio import, plugin suite not executed"
     },
     {
       "id": "chromadb",
@@ -1897,7 +1937,7 @@
         "pytest-mpl; extra == \"test-extras\"",
         "pytest-randomly; extra == \"test-extras\""
       ],
-      "runtime_test": "NOT_RUN",
+      "runtime_test": "PASS_LIMITED_CPU_SMOKE",
       "integration": "WINDOWS_OPTIONAL_SMOKE_PROFILE",
       "url": "https://files.pythonhosted.org/packages/7e/cd/fe58041e9011f307c490e3e17dd48cc516448f7c698a3f2d9d9d65d7e6a8/networkx-3.7-py3-none-any.whl",
       "filename": "networkx-3.7-py3-none-any.whl",
@@ -1911,7 +1951,15 @@
       "reason": "Exact compatible wheel downloaded and SHA-256 matched PyPI; transitive dependency installation and runtime remain separate.",
       "upload_time": "2026-09-21T16:45:14.609636Z",
       "active_windows_dependencies": [],
-      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS"
+      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS",
+      "runtime_execution": {
+        "run_id": 37980083131,
+        "job_id": 113988068727,
+        "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+        "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
+        "conclusion": "success"
+      },
+      "runtime_scope": "CPU operations/imports; pytesseract image preprocessing, OCR engine not executed; pytest-asyncio import, plugin suite not executed"
     },
     {
       "id": "gymnasium",
@@ -2255,7 +2303,7 @@
         "numpy>=1.25",
         "packaging"
       ],
-      "runtime_test": "NOT_RUN",
+      "runtime_test": "PASS_LIMITED_CPU_SMOKE",
       "integration": "WINDOWS_OPTIONAL_SMOKE_PROFILE",
       "url": "https://files.pythonhosted.org/packages/98/ae/e31e9c30f686681b78bd089edbefd3675602132612ce5dd187275be8b773/faiss_cpu-1.15.1-cp313-cp313-win_amd64.whl",
       "filename": "faiss_cpu-1.15.1-cp313-cp313-win_amd64.whl",
@@ -2280,7 +2328,15 @@
           "status": "COMPATIBLE_PIN"
         }
       ],
-      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS"
+      "dependency_closure": "CLOSED_WITH_BASE_AND_TEST_PINS",
+      "runtime_execution": {
+        "run_id": 37980083131,
+        "job_id": 113988068727,
+        "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+        "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
+        "conclusion": "success"
+      },
+      "runtime_scope": "CPU operations/imports; pytesseract image preprocessing, OCR engine not executed; pytest-asyncio import, plugin suite not executed"
     },
     {
       "id": "adbutils",
@@ -3111,5 +3167,13 @@
         "requirement": "packaging"
       }
     ]
-  }
+  },
+  "windows_execution": {
+    "run_id": 37980083131,
+    "job_id": 113988068727,
+    "commit": "58469b2d33499c1a39cae8ef7531a4eb21fc5932",
+    "url": "https://github.com/tem40504-wq/Pers/actions/runs/37980083131",
+    "conclusion": "success"
+  },
+  "runtime_scope": "CPU operations/imports; pytesseract image preprocessing, OCR engine not executed; pytest-asyncio import, plugin suite not executed"
 }
