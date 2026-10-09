@@ -83,6 +83,7 @@ def main(argv=None):
         if args.optional_smoke:
             run('optional_runtime',[str(py),str(ROOT/'optional_windows_smoke.py')])
         run('adb_version',[str(ROOT/'tools/android/platform-tools/adb.exe'),'version'])
+        run('windows_launcher',[env.get('COMSPEC','cmd.exe'),'/d','/c','start_agent.bat','--check-launcher'],timeout=60)
         run('pytest',[str(py),'-m','pytest','-q','-o','addopts=','tests_l9','legacy_level8/tests/test_level8.py','--junitxml='+str(out/'windows_junit.xml')])
         run('bootstrap_report',[str(py),'-m','bootstrap.bootstrap','--report'])
         report['windows_tests']='PASS'

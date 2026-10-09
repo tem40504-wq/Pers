@@ -4,22 +4,13 @@ chcp 65001 >nul
 set "PYTHONUTF8=1"
 set "PYTHONIOENCODING=utf-8"
 cd /d "%~dp0"
-set "PYCMD=py"
-where py >nul 2>nul
-if errorlevel 1 set "PYCMD=python"
-if exist "%~dp0.venv\Scripts\python.exe" set "PYCMD="%~dp0.venv\Scripts\python.exe""
-if exist "%~dp0tools\android\platform-tools\adb.exe" set "PATH=%~dp0tools\android\platform-tools;%PATH%"
-%PYCMD% main_pc_l9.py --preflight
-if errorlevel 1 (
-  echo Проверьте Python, ADB и подключение телефона.
-  pause
-  exit /b 1
-)
-echo.
-echo ТЕСТОВЫЙ ЗАПУСК: 20 циклов, БЕЗ НАЖАТИЙ.
-%PYCMD% main_pc_l9.py --steps 20 --dashboard
+if not exist ".venv\Scripts\python.exe" goto missing
+".venv\Scripts\python.exe" "launch_agent.py" %*
 set "RESULT=%ERRORLEVEL%"
-if not "%RESULT%"=="0" echo Диагностика завершилась с ошибкой; см. вывод выше.
 echo Exit code: %RESULT%
-pause
+if /I not "%~1"=="--check-launcher" pause
 exit /b %RESULT%
+:missing
+echo Run RUN_WINDOWS_TESTS.bat first to prepare the local Python environment.
+if /I not "%~1"=="--check-launcher" pause
+exit /b 2

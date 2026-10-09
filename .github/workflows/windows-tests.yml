@@ -9,6 +9,9 @@ on:
       - 'legacy_level8/**'
       - 'run_windows_tests.py'
       - 'optional_windows_smoke.py'
+      - 'launch_agent.py'
+      - 'start_agent.bat'
+      - '.gitattributes'
       - '.github/workflows/windows-tests.yml'
 permissions:
   contents: read
@@ -34,6 +37,7 @@ jobs:
           Get-Content reports/windows_test_report.json -Encoding UTF8
           Get-Content reports/pytest.log -Encoding UTF8
           if (Test-Path reports/optional_runtime.log) { Get-Content reports/optional_runtime.log -Encoding UTF8 }
+          if (Test-Path reports/windows_launcher.log) { Get-Content reports/windows_launcher.log -Encoding UTF8 }
       - name: Upload real Windows reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
