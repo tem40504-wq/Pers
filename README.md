@@ -2,7 +2,10 @@
 
 Новая инструкция: INSTRUCTIONS.md. Проверка телефона без касаний: VERIFY_ADB.bat; файловый способ: VERIFY_ADB_PULL.bat; запуск через файл: START_AGENT_PULL.bat.
 
-# Universal Game Agent v9.4 — PC-as-Brain / Verified Windows Profile
+
+Проверка v9.5: 118 тестов PASS на Windows Server 2022 / Python 3.13.14; BAT-запуск PASS. Отчёт: WINDOWS_ADB_RECOVERY_REPORT.json. USB Samsung в CI не подключён.
+
+# История: Universal Game Agent v9.4 — PC-as-Brain / Verified Windows Profile
 
 **Обновление v9.4:** 100 тестов и smoke-проверки семи дополнительных библиотек успешно выполнены на реальном Windows Server 2022 / Python 3.13.14. Все 44 дополнительных компонента прошли аудит: 37 имеют проверенные или закреплённые файлы/комплекты, 7 имеют явные ограничения. Подробности: `docs/OPTIONAL_AUDIT_RU.md`, `docs/TEST_REPORT_ACTUAL.md`. Запуск испытаний на Windows: `RUN_WINDOWS_TESTS.bat`.
 

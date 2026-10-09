@@ -1,0 +1,154 @@
+{
+  "version": "9.5",
+  "tested_commit": "64a4ad9ac8ef8e5fc35bb3bbdf6a3211c477c884",
+  "run_url": "https://github.com/tem40504-wq/Pers/actions/runs/37994583043",
+  "tests": "118 passed in 5.54s",
+  "phone_capture": "NOT_RUN_ON_CI",
+  "timestamp": "2026-10-09T21:38:35.317972+00:00",
+  "os": "Windows-2022Server-10.0.20348-SP0",
+  "python": "3.13.14",
+  "bits": 64,
+  "windows_tests": "PASS",
+  "phone_tests": "NOT_RUN",
+  "gpu_tests": "NOT_RUN",
+  "checks": [
+    {
+      "name": "sha256:numpy",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:opencv-python",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:Pillow",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:requests",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:pytest",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:certifi",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:charset-normalizer",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:colorama",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:idna",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:iniconfig",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:packaging",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:pluggy",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:pygments",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:urllib3",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:scipy",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:PyYAML",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:networkx",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:pytest-asyncio",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:pytesseract",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:av",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:faiss-cpu",
+      "status": "PASS"
+    },
+    {
+      "name": "sha256:adb",
+      "status": "PASS"
+    },
+    {
+      "name": "create_venv",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "venv_platform",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "install_locked_wheels",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "pip_check",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "runtime_imports",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "optional_runtime",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "adb_version",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "windows_launcher",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "pytest",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "bootstrap_report",
+      "exit_code": 0,
+      "status": "PASS"
+    }
+  ]
+}
