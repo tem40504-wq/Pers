@@ -4,6 +4,7 @@ chcp 65001 >nul
 set "PYTHONUTF8=1"
 set "PYTHONIOENCODING=utf-8"
 cd /d "%~dp0"
+echo GameAgent v9.4 - Windows launcher
 if not exist ".venv\Scripts\python.exe" goto missing
 ".venv\Scripts\python.exe" "launch_agent.py" %*
 set "RESULT=%ERRORLEVEL%"
