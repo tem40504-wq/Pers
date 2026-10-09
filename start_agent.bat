@@ -5,6 +5,7 @@ set "PYTHONUTF8=1"
 set "PYTHONIOENCODING=utf-8"
 cd /d "%~dp0"
 echo GameAgent v9.5 - Windows launcher
+echo ADB recovery enabled. Diagnostics: VERIFY_ADB.bat
 if not exist ".venv\Scripts\python.exe" goto missing
 ".venv\Scripts\python.exe" "launch_agent.py" %*
 set "RESULT=%ERRORLEVEL%"
