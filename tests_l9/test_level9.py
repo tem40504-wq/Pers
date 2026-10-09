@@ -161,13 +161,13 @@ def test_adb_bridge_uses_fixed_arguments():
     commands=[]
     def runner(cmd, **kwargs):
         commands.append(cmd)
-        return ok_process()
+        return ok_process(b'PHONE\tdevice\n' if cmd[1:]==['devices'] else b'')
     ADBBridge('PHONE', runner=runner).tap(100,200)
-    assert commands == [['adb','-s','PHONE','shell','input','tap','100','200']]
+    assert commands == [['adb','devices'], ['adb','-s','PHONE','shell','input','tap','100','200']]
 
 
 def test_adb_bridge_fails_invalid_png():
-    with pytest.raises(ADBError):ADBBridge('PHONE', runner=lambda cmd,**kwargs:ok_process(b'nonsense')).screenshot_png()
+    with pytest.raises(ADBError):ADBBridge('PHONE', runner=lambda cmd,**kwargs:ok_process(b'PHONE\tdevice\n' if cmd[1:]==['devices'] else b'nonsense')).screenshot_png()
 
 
 def test_fast_capture_falls_back():
@@ -176,7 +176,7 @@ def test_fast_capture_falls_back():
     buffer=io.BytesIO()
     Image.new('RGB',(2,3),'red').save(buffer,'PNG')
     png=buffer.getvalue()
-    bridge=ADBBridge('PHONE',runner=lambda cmd,**kwargs:ok_process(png))
+    bridge=ADBBridge('PHONE',runner=lambda cmd,**kwargs:ok_process(b'PHONE\tdevice\n' if cmd[1:]==['devices'] else png))
     frame=FastCapture(bridge,stream_provider=lambda:None).get_frame()
     assert frame.source == 'adb_screencap'
 

@@ -6,6 +6,7 @@ from bootstrap.environment_detector import EnvironmentDetector
 from bootstrap.pc_self_test import PCSelfTest
 from bootstrap.manifest import DependencyManifest
 from pc_core.adb_bridge import DeviceManager, ADBBridge, ADBError
+from patch_main_pc_l9 import run_with_adb_recovery
 from pc_core.fast_input import FastInput, PanicStop
 from pc_core.dashboard import ControlDashboard
 from pc_core.legacy_device import GuardedLegacyDevice
@@ -21,6 +22,7 @@ def main(argv=None):
     p.add_argument('--preflight', action='store_true', help='Только диагностика ПК и подключённого телефона')
     p.add_argument('--device', help='ADB serial; обязателен при нескольких устройствах')
     p.add_argument('--dashboard', action='store_true', help='Локальная панель с PANIC STOP')
+    p.add_argument('--capture-mode', choices=['auto', 'pull'], default='auto', help='Способ получения скриншота')
     p.add_argument('--game', default='generic')
     p.add_argument('--steps', type=int, default=5)
     p.add_argument('--offline-approved', action='store_true', help='Оператор подтвердил офлайн-стенд')
@@ -57,14 +59,15 @@ def main(argv=None):
         if allow.strip().upper() != 'Y':
             print('Отказ — запускайте без --execute для проверки без касаний')
             return
-    device = DeviceManager().selected(args.device)
+    adb_path = str(root/'tools/android/platform-tools/adb.exe') if (root/'tools/android/platform-tools/adb.exe').is_file() else 'adb'
+    device = DeviceManager(adb_path=adb_path).selected(args.device)
     Agent, Settings = legacy_agent(root)
     cfg = Settings(serial=device.serial, game_id=args.game,
                    dry_run=not args.execute, safe_zones=tuple(zones),
                    enable_yolo=False, enable_ocr=False, enable_chroma=False,
                    max_steps=args.steps, memory_dir=str(root/'runtime'/'pc_l9'))
     print('Устройство:', device.serial, '|', 'REAL OFFLINE' if args.execute else 'DRY RUN')
-    bridge = ADBBridge(device.serial)
+    bridge = ADBBridge(serial=device.serial, adb_path=adb_path, log_dir=str(root/'logs'), capture_mode=args.capture_mode)
     emergency = PanicStop()
     guard = FastInput(bridge, stop=emergency, zones=zones, offline_approved=args.execute and args.offline_approved)
     # Дополнительный Safety Gate находится ПЕРЕД ADBBridge, старый ActionExecutor сохранён.
@@ -84,7 +87,7 @@ def main(argv=None):
             return result
         agent.step = step_with_status
     try:
-        completed = agent.run()
+        completed = run_with_adb_recovery(agent, bridge, emergency=emergency)
         print(f'Наблюдение завершено: {completed} успешных циклов; режим без касаний' if not args.execute
               else f'Выполнено циклов: {completed}')
     finally:
@@ -95,7 +98,11 @@ def main(argv=None):
 if __name__ == '__main__':
     try:
         main()
-    except (ADBError, RuntimeError, ImportError, ValueError) as exc:
+    except ADBError as exc:
+        print('Сессия ADB остановлена:', exc)
+        print('Диагностика: VERIFY_ADB.bat')
+        raise SystemExit(1)
+    except (RuntimeError, ImportError, ValueError) as exc:
         print('Проверка запуска остановлена:', exc)
         print('Выполните сначала: python -m bootstrap.bootstrap --self-test')
         raise SystemExit(1)

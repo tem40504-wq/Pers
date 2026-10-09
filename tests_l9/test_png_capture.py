@@ -21,6 +21,7 @@ def result(data=b'', code=0):
 def test_truncated_capture_retried_without_changing_good_binary(bad):
     calls=[]
     def run(cmd,**kwargs):
+        if cmd[1:]==['devices']:return result(b'List of devices attached\nPHONE\tdevice\n')
         calls.append(cmd)
         assert not kwargs.get('text') and not kwargs.get('shell')
         return result(bad if len(calls)==1 else png())
@@ -36,6 +37,7 @@ def test_crc_damage_rejected_before_perception():
 def test_pull_fallback_and_cleanup_of_only_own_temporary_file():
     calls=[]
     def run(cmd,**kwargs):
+        if cmd[1:]==['devices']:return result(b'List of devices attached\nPHONE\tdevice\n')
         calls.append(cmd)
         if cmd[3]=='exec-out':return result(png()[:-12])
         if cmd[3]=='pull':Path(cmd[-1]).write_bytes(png())
@@ -50,6 +52,7 @@ def test_pull_fallback_and_cleanup_of_only_own_temporary_file():
 
 def test_all_transfers_incomplete_are_failure_not_a_frame():
     def run(cmd,**kwargs):
+        if cmd[1:]==['devices']:return result(b'List of devices attached\nPHONE\tdevice\n')
         if cmd[3]=='pull':Path(cmd[-1]).write_bytes(png()[:-12])
         return result(png()[:-12])
     with pytest.raises(ADBError,match='полный PNG'):
@@ -58,12 +61,12 @@ def test_all_transfers_incomplete_are_failure_not_a_frame():
 
 def test_missing_pull_file_is_capture_failure():
     with pytest.raises(ADBError,match='полный PNG'):
-        ADBBridge('PHONE',runner=lambda cmd,**kwargs:result(png()[:20])).screenshot_png()
+        ADBBridge('PHONE',runner=lambda cmd,**kwargs:result(b'PHONE\tdevice\n' if cmd[1:]==['devices'] else png()[:20])).screenshot_png()
 
 
 def test_valid_png_reaches_real_opencv_perception():
     from game_agent.perception import Perception
-    data=ADBBridge('PHONE',runner=lambda cmd,**kwargs:result(png())).screenshot_png()
+    data=ADBBridge('PHONE',runner=lambda cmd,**kwargs:result(b'PHONE\tdevice\n' if cmd[1:]==['devices'] else png())).screenshot_png()
     assert validate_png(data)==(17,29)
     frame=Perception.from_png(data)
     assert frame.shape==(29,17,3)

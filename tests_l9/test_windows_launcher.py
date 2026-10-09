@@ -21,7 +21,7 @@ def test_launcher_runs_no_gestures_and_returns_agent_failure(monkeypatch):
         calls.append((cmd,kwargs));return SimpleNamespace(returncode=0 if len(calls)==1 else 1)
     monkeypatch.setattr(launch_agent.subprocess,'run',run)
     assert launch_agent.main([])==1
-    assert calls[-1][0][-3:]==['--steps','20','--dashboard']
+    assert calls[-1][0][-5:]==['--steps','20','--dashboard','--capture-mode','auto']
     assert '--execute' not in calls[-1][0]
     assert calls[-1][1]['env']['PYTHONUTF8']=='1'
     assert str(ROOT/'tools/android/platform-tools') in calls[-1][1]['env']['PATH']
