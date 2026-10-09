@@ -23,7 +23,8 @@ def test_evidence_matches_manifest_pins():
     for row in doc['artifacts']:
         spec=normalized[row['id'].lower().replace('_','-')]
         assert (spec.url,spec.sha256,spec.version)==(row['url'],row['sha256'],row['version'])
-    assert doc['windows_runtime_test']=='NOT_RUN'
+    assert doc['windows_runtime_test']=='PASS'
+    assert doc['windows_execution']['conclusion']=='success'
 
 @pytest.mark.parametrize('url',['https:///empty','https://','https://evil.test@pypi.org/x'])
 def test_malformed_origin_rejected(url):

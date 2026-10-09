@@ -8,6 +8,7 @@ on:
       - 'tests_l9/**'
       - 'legacy_level8/**'
       - 'run_windows_tests.py'
+      - 'optional_windows_smoke.py'
       - '.github/workflows/windows-tests.yml'
 permissions:
   contents: read
@@ -25,7 +26,14 @@ jobs:
           python-version: '3.13.14'
           architecture: 'x64'
       - name: Verify downloads, install pinned dependencies, run Windows tests
-        run: python run_windows_tests.py --prepare --yes
+        run: python run_windows_tests.py --prepare --yes --optional-smoke
+      - name: Print execution evidence
+        if: always()
+        shell: pwsh
+        run: |
+          Get-Content reports/windows_test_report.json -Encoding UTF8
+          Get-Content reports/pytest.log -Encoding UTF8
+          if (Test-Path reports/optional_runtime.log) { Get-Content reports/optional_runtime.log -Encoding UTF8 }
       - name: Upload real Windows reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

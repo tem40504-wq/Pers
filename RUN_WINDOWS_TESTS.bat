@@ -2,7 +2,7 @@
 setlocal
 cd /d "%~dp0"
 set "PYTHONUTF8=1"
-py -3.13 run_windows_tests.py --prepare
+py -3.13 run_windows_tests.py --prepare --optional-smoke
 set "RESULT=%ERRORLEVEL%"
 echo.
 echo Test report: reports\windows_test_report.json

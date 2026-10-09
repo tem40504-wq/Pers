@@ -12,7 +12,8 @@ import struct
 _SHA256 = re.compile(r'^[0-9a-fA-F]{64}$')
 _ALLOWED = ('python.org', 'pypi.org', 'files.pythonhosted.org', 'nvidia.com',
             'developer.nvidia.com', 'download.pytorch.org', 'dl.google.com',
-            'github.com', 'objects.githubusercontent.com', 'release-assets.githubusercontent.com', 'huggingface.co')
+            'github.com', 'objects.githubusercontent.com', 'release-assets.githubusercontent.com', 'huggingface.co',
+            'hf.co', 'raw.githubusercontent.com', 'download.visualstudio.microsoft.com', 'kaggle.com')
 
 
 def official_https(url: str) -> bool:
@@ -41,6 +42,8 @@ class DependencySpec:
     target: str | None
     supported_os: str | None = None
     python_minor: str | None = None
+    audit_status: str | None = None
+    bundle_files: list[dict] | None = None
 
     def compatible(self) -> bool:
         if self.supported_os and (platform.system() != self.supported_os
@@ -75,6 +78,12 @@ class DependencyManifest:
                 raise ValueError(f'Недопустимый SHA-256 {s.id}')
             if s.artifact not in {'manual', 'wheel', 'zip', 'model'}:
                 raise ValueError(f'Неизвестный тип файла {s.id}')
+            for file in s.bundle_files or []:
+                path = Path(file['path'])
+                if path.is_absolute() or '..' in path.parts or '\\' in file['path']:
+                    raise ValueError(f'Недопустимый путь комплекта {s.id}')
+                if not _SHA256.fullmatch(file['sha256']) or not official_https(file['url']):
+                    raise ValueError(f'Некорректный файл комплекта {s.id}')
         self.by_id = {x.id: x for x in self.components}
         self.profiles = doc.get('profiles', {})
         for ids in self.profiles.values():

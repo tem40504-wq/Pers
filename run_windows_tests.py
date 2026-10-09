@@ -24,6 +24,7 @@ def main(argv=None):
     p.add_argument('--prepare', action='store_true', help='Download pinned test/base artifacts and install only into .venv')
     p.add_argument('--yes', action='store_true', help='Explicit unattended approval for --prepare (e.g. CI)')
     p.add_argument('--phone', action='store_true', help='Also run 3 observation cycles on a connected phone; no gestures')
+    p.add_argument('--optional-smoke', action='store_true', help='Also install and exercise the seven closed optional wheel dependencies')
     args = p.parse_args(argv)
     out = ROOT/'reports'
     out.mkdir(exist_ok=True)
@@ -37,7 +38,8 @@ def main(argv=None):
         report['reason']='Requires real Windows; current OS is '+platform.system()
         save(); print(report['reason']); return 2
     manifest = DependencyManifest(ROOT/'bootstrap/dependencies_pc.yaml')
-    specs=[manifest.by_id[i] for i in manifest.profiles['windows-tests']+['adb']]
+    ids=manifest.profiles['windows-tests']+(manifest.profiles['windows-optional-smoke'] if args.optional_smoke else [])+['adb']
+    specs=[manifest.by_id[i] for i in dict.fromkeys(ids)]
     if not all(s.compatible() for s in specs):
         report['reason']='Requires Windows x64, regular CPython 3.13 (not ARM64/free-threaded)'
         save();print(report['reason']);return 2
@@ -55,7 +57,7 @@ def main(argv=None):
     py=ROOT/'.venv/Scripts/python.exe'
     try:
         if args.prepare:
-            ops=[{'name':'Windows test environment','action':'Download 14 hashed wheels and ADB; create local .venv; install wheels with --no-deps --no-index; run tests',
+            ops=[{'name':'Windows test environment','action':f'Download {len(specs)-1} hashed wheels and ADB; create local .venv; install wheels with --no-deps --no-index; run tests',
                   'reason':'Reproducible Windows acceptance','benefit':'Report of real Windows execution','risks':'Local project files and disk space; ADB diagnostics'}]
             gate=BatchPermissionGate(ask=(lambda _: 'Y') if args.yes else input,audit_path=out/'windows_prepare_audit.jsonl')
             if not gate.approve(ops):
@@ -78,6 +80,8 @@ def main(argv=None):
         env['PATH']=str(ROOT/'tools/android/platform-tools')+os.pathsep+env.get('PATH','')
         run('pip_check',[str(py),'-m','pip','check'])
         run('runtime_imports',[str(py),'-c',"import numpy,cv2,PIL,requests; print(numpy.__version__,cv2.__version__,PIL.__version__,requests.__version__)"])
+        if args.optional_smoke:
+            run('optional_runtime',[str(py),str(ROOT/'optional_windows_smoke.py')])
         run('adb_version',[str(ROOT/'tools/android/platform-tools/adb.exe'),'version'])
         run('pytest',[str(py),'-m','pytest','-q','-o','addopts=','tests_l9','legacy_level8/tests/test_level8.py','--junitxml='+str(out/'windows_junit.xml')])
         run('bootstrap_report',[str(py),'-m','bootstrap.bootstrap','--report'])

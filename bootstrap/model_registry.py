@@ -19,6 +19,16 @@ class PCModelRegistry:
 
     def status(self, spec: DependencySpec) -> str:
         path = self.model_path(spec)
+        if spec.bundle_files:
+            for file in spec.bundle_files:
+                companion = (path.parent / file['path']).resolve()
+                if not companion.is_relative_to(path.parent):
+                    raise ValueError('Путь комплекта за пределами папки модели')
+                if not companion.is_file():
+                    return 'missing_bundle_file'
+                if sha256_file(companion).lower() != file['sha256'].lower():
+                    return 'hash_mismatch'
+            return 'verified'
         if not path.exists() or not path.is_file():
             return 'missing'
         if not spec.sha256:

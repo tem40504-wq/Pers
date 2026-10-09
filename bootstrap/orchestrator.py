@@ -51,7 +51,8 @@ class BootstrapOrchestrator:
         print(f'Компонентов в манифесте: {len(self.manifest)}; требуют проверки: {len(missing)}')
         print(f'Суммарные известные оценки загрузки: {known:.0f} МБ (не смета установки)')
         for s in missing:
-            print(f'  {s.id:<23} {self.status(s):<15} {"готов к защищённой загрузке" if s.downloadable else "ручная подготовка SHA-256/файла"}')
+            preparation = 'ручная интеграция' if s.artifact == 'manual' else ('готов к защищённой загрузке' if s.downloadable else 'нет проверенного файла')
+            print(f'  {s.id:<23} {self.status(s):<15} {preparation}; аудит: {s.audit_status or "base"}')
         return [{'id': s.id, 'status': self.status(s), 'ready': s.downloadable} for s in missing]
 
     def _journal(self, kind: str, payload: dict):
@@ -60,6 +61,8 @@ class BootstrapOrchestrator:
             f.write(json.dumps({'time': time.time(), 'event': kind, **payload}, ensure_ascii=False)+'\n')
 
     def _install_verified(self, spec: DependencySpec, *, offline_dir: Path | None = None):
+        if spec.bundle_files:
+            raise PermissionDenied('Комплект модели требует ручного размещения всех проверенных файлов')
         if not spec.sha256:
             raise PermissionDenied(f'{spec.id}: нет закреплённого SHA-256')
         artifact_dir = self.root / 'downloads'

@@ -35,7 +35,7 @@ def test_manifest_size_and_unique_ids():
 
 
 def test_manifest_missing_hash_is_not_downloadable():
-    assert not manifest().by_id['yolov8n'].downloadable
+    assert not manifest().by_id['temporal-lstm'].downloadable
 
 
 @pytest.mark.parametrize('url', ['http://pypi.org/x', 'https://evil.example/x',
@@ -125,7 +125,7 @@ def test_orchestrator_apply_unknown_id_doesnt_prompt(tmp_path):
 
 def test_orchestrator_missing_hash_doesnt_prompt():
     o = BootstrapOrchestrator(ROOT, gate=BatchPermissionGate(ask=lambda _:pytest.fail('should not prompt'),output=lambda _:None))
-    with pytest.raises(PermissionDenied):o.apply(['yolov8n'])
+    with pytest.raises(PermissionDenied):o.apply(['temporal-lstm'])
 
 
 def test_self_test_returns_statuses_without_phone():
