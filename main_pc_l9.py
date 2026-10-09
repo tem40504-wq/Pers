@@ -13,6 +13,10 @@ from pc_core.pc_agent_adapter import legacy_agent
 
 
 def main(argv=None):
+    import sys
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(encoding='utf-8', errors='replace')
     p = argparse.ArgumentParser(description='Universal Game Agent L9 — PC-as-Brain')
     p.add_argument('--preflight', action='store_true', help='Только диагностика ПК и подключённого телефона')
     p.add_argument('--device', help='ADB serial; обязателен при нескольких устройствах')
@@ -80,7 +84,9 @@ def main(argv=None):
             return result
         agent.step = step_with_status
     try:
-        agent.run()
+        completed = agent.run()
+        print(f'Наблюдение завершено: {completed} успешных циклов; режим без касаний' if not args.execute
+              else f'Выполнено циклов: {completed}')
     finally:
         if dashboard:
             dashboard.close()
@@ -89,7 +95,7 @@ def main(argv=None):
 if __name__ == '__main__':
     try:
         main()
-    except (ADBError, RuntimeError, ImportError) as exc:
+    except (ADBError, RuntimeError, ImportError, ValueError) as exc:
         print('Проверка запуска остановлена:', exc)
         print('Выполните сначала: python -m bootstrap.bootstrap --self-test')
         raise SystemExit(1)

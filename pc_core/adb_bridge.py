@@ -3,7 +3,11 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import tempfile
+import uuid
+from pathlib import Path
 from dataclasses import dataclass
+from .png_capture import PNGError, validate_png
 
 
 class ADBError(RuntimeError):
@@ -52,17 +56,45 @@ class ADBBridge:
 
     def _run(self, args: list[str], timeout: int = 12) -> bytes:
         # Только фиксированные аргументы и без shell=True.
-        p = self.runner([self.adb_path, '-s', self.serial, *args],
-                        capture_output=True, timeout=timeout, check=False)
+        try:
+            p = self.runner([self.adb_path, '-s', self.serial, *args],
+                            capture_output=True, timeout=timeout, check=False)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise ADBError('Сбой ADB: ' + str(exc)) from exc
         if p.returncode:
             raise ADBError((p.stderr or b'ADB command failed').decode(errors='replace')[:300])
         return p.stdout
 
     def screenshot_png(self) -> bytes:
-        data = self._run(['exec-out', 'screencap', '-p'], timeout=20)
-        if not data.startswith(b'\x89PNG\r\n\x1a\n'):
-            raise ADBError('Не получен корректный PNG от телефона')
-        return data
+        errors = []
+        for _ in range(2):
+            try:
+                data = self._run(['exec-out', 'screencap', '-p'], timeout=20)
+                validate_png(data)
+                return data
+            except (ADBError, PNGError) as exc:
+                errors.append(str(exc))
+        # Some device/USB combinations truncate exec-out; pull a complete file instead.
+        remote = '/data/local/tmp/uga_capture_' + uuid.uuid4().hex + '.png'
+        try:
+            with tempfile.TemporaryDirectory(prefix='uga_capture_') as folder:
+                local = Path(folder) / 'screen.png'
+                self._run(['shell', 'screencap', '-p', remote], timeout=20)
+                self._run(['pull', remote, str(local)], timeout=30)
+                data = local.read_bytes()
+                validate_png(data)
+                print('Скриншот получен через резервный ADB pull.')
+                return data
+        except (ADBError, PNGError, OSError) as exc:
+            errors.append(str(exc))
+            raise ADBError('Не получен полный PNG после повтора и ADB pull: '
+                           + '; '.join(errors)[-700:]
+                           + '. Разблокируйте телефон и проверьте USB-кабель.') from exc
+        finally:
+            try:
+                self._run(['shell', 'rm', remote])
+            except ADBError:
+                pass
 
     def tap(self, x: int, y: int):
         if type(x) is not int or type(y) is not int or x < 0 or y < 0:

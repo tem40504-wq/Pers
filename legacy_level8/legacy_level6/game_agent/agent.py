@@ -84,7 +84,7 @@ class GameAgent:
         return {"goal": goal, "state": obs.state, "action": action.kind,
                 "status": status, "delta": delta, "id": event["id"]}
 
-    def run(self, max_steps=None) -> None:
+    def run(self, max_steps=None) -> int:
         max_steps = self.cfg.max_steps if max_steps is None else max_steps
         count = 0
         while max_steps == 0 or count < max_steps:
@@ -96,7 +96,8 @@ class GameAgent:
                 raise
             except Exception as exc:
                 LOG.exception("Ошибка цикла: %s. Остановка для проверки", exc)
-                break
+                raise
             count += 1
             # 500 мс — целевой период запуска, но OCR/VLM/ADB могут быть медленнее.
             self.sleep(max(0, self.cfg.worker_period - (self.clock() - start)))
+        return count

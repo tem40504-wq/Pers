@@ -171,7 +171,11 @@ def test_adb_bridge_fails_invalid_png():
 
 
 def test_fast_capture_falls_back():
-    png=b'\x89PNG\r\n\x1a\nxxx'
+    import io
+    from PIL import Image
+    buffer=io.BytesIO()
+    Image.new('RGB',(2,3),'red').save(buffer,'PNG')
+    png=buffer.getvalue()
     bridge=ADBBridge('PHONE',runner=lambda cmd,**kwargs:ok_process(png))
     frame=FastCapture(bridge,stream_provider=lambda:None).get_frame()
     assert frame.source == 'adb_screencap'
