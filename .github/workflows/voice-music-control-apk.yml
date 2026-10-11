@@ -214,7 +214,9 @@ jobs:
           YwAAAAAA4//zxYtztIIAAaFPgOADAFbsIKSxxGf7AgAAAAAEWVo=
           B64
       - name: Build signed debug APK
-        run: gradle -p voice_music_app --no-daemon :app:assembleDebug
+        run: |
+          sed -i 's/button.setTextAllCaps(false);/button.setAllCaps(false);/' voice_music_app/app/src/main/java/com/voicemusic/control/MainActivity.java
+          gradle -p voice_music_app --no-daemon :app:assembleDebug
       - name: Publish APK directly on isolated branch
         env:
           GH_TOKEN: ${{ github.token }}
