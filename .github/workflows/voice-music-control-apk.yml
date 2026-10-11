@@ -424,7 +424,9 @@ jobs:
           echo 'voice_media_ru_0.22_v191' > voice_media_app/app/src/main/assets/vosk-ru/uuid
           test -s voice_media_app/app/src/main/assets/vosk-ru/am/final.mdl
       - name: Compile signed Android APK
-        run: gradle -p voice_media_app --no-daemon :app:assembleDebug
+        run: |
+          sed -i 's/import android.media.browse.MediaBrowserService;/import android.service.media.MediaBrowserService;/' voice_media_app/app/src/main/java/com/voicemusic/control/MediaCommander.java
+          gradle -p voice_media_app --no-daemon :app:assembleDebug
       - name: Verify APK signature and metadata
         run: |
           APK=voice_media_app/app/build/outputs/apk/debug/app-debug.apk
