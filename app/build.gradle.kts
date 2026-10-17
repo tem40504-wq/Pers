@@ -15,6 +15,8 @@ android {
         targetSdk = 35
         versionCode = 4
         versionName = "0.1.3"
+        // Phones only: x86/x86_64 ML Kit libraries (~37 MB) are for emulators.
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
     // Fixed debug key in the repo: every build (GitHub Actions or local) is signed the same way,
     // so new versions install over old ones without uninstalling.
