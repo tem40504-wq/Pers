@@ -1,0 +1,60 @@
+package: name='dev.gamescreen.voice' versionCode='9' versionName='0.2.3' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
+minSdkVersion:'29'
+targetSdkVersion:'35'
+uses-permission: name='android.permission.INTERNET'
+uses-permission: name='android.permission.SYSTEM_ALERT_WINDOW'
+uses-permission: name='android.permission.FOREGROUND_SERVICE'
+uses-permission: name='android.permission.FOREGROUND_SERVICE_SPECIAL_USE'
+uses-permission: name='android.permission.POST_NOTIFICATIONS'
+uses-permission: name='android.permission.RECORD_AUDIO'
+uses-permission: name='android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION'
+uses-permission: name='android.permission.ACCESS_NETWORK_STATE'
+uses-permission: name='dev.gamescreen.voice.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+application-label:'GameScreen Voice'
+application-label-af:'GameScreen Voice'
+application-label-am:'GameScreen Voice'
+application-label-ar:'GameScreen Voice'
+application-label-as:'GameScreen Voice'
+application-label-az:'GameScreen Voice'
+application-label-be:'GameScreen Voice'
+application-label-bg:'GameScreen Voice'
+application-label-bn:'GameScreen Voice'
+application-label-bs:'GameScreen Voice'
+application-label-ca:'GameScreen Voice'
+application-label-cs:'GameScreen Voice'
+application-label-da:'GameScreen Voice'
+application-label-de:'GameScreen Voice'
+application-label-el:'GameScreen Voice'
+application-label-en-AU:'GameScreen Voice'
+application-label-en-CA:'GameScreen Voice'
+application-label-en-GB:'GameScreen Voice'
+application-label-en-IN:'GameScreen Voice'
+application-label-en-XC:'GameScreen Voice'
+application-label-es:'GameScreen Voice'
+application-label-es-US:'GameScreen Voice'
+application-label-et:'GameScreen Voice'
+application-label-eu:'GameScreen Voice'
+application-label-fa:'GameScreen Voice'
+application-label-fi:'GameScreen Voice'
+application-label-fr:'GameScreen Voice'
+application-label-fr-CA:'GameScreen Voice'
+--- testOnly:
+none
+--- apksigner:
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=Android Debug, O=Android, C=US
+Signer #1 certificate SHA-256 digest: 9864af7101933d5c40de1afdf933061cc2d2bc0274ed130fdce72749dc767081
+Signer #1 certificate SHA-1 digest: 8edbd84d18d6a87d7dbec3bf30ee4342e720b3cb
+Signer #1 certificate MD5 digest: 2ad27299fe7b50bfc5ee728bb7f216b0
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: e748833ff8ffe2fc4109b02dd16a9fb811eda0474b31887cc27b93a4c090e0c6
+Signer #1 public key SHA-1 digest: e19d60bc622de9cbfcd02550958389655dc633e7
+Signer #1 public key MD5 digest: 54d06f6413c45b97bdb6da4f0e0287fa
