@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.room.Room
 import dev.gamescreen.voice.data.DeepLTranslationRepository
 import dev.gamescreen.voice.data.HistoryDatabase
+import dev.gamescreen.voice.data.MlKitTranslationRepository
+import dev.gamescreen.voice.data.RoutingTranslationRepository
 import dev.gamescreen.voice.data.SecretStore
 import dev.gamescreen.voice.data.SettingsStore
 import dev.gamescreen.voice.domain.TranslationPipeline
@@ -15,6 +17,11 @@ class GameVoiceApp : Application() {
         Room.databaseBuilder(this, HistoryDatabase::class.java, "voice_history.db").build()
     }
     val pipeline by lazy {
-        TranslationPipeline(DeepLTranslationRepository(secrets), settings, database.translations())
+        TranslationPipeline(
+            RoutingTranslationRepository(
+                DeepLTranslationRepository(secrets), MlKitTranslationRepository(), secrets, settings
+            ),
+            settings, database.translations()
+        )
     }
 }

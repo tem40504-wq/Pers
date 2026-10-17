@@ -57,7 +57,14 @@ class DeepLTranslationRepository(
         }
     }
 
-    override suspend fun translate(text: String, sourceLanguage: String, targetLanguage: String): String {
+    override fun label(): String = "DeepL"
+
+    override suspend fun translate(
+        text: String,
+        sourceLanguage: String,
+        targetLanguage: String,
+        onStatus: (String) -> Unit
+    ): String {
         val key = secrets.readApiKey()?.trim()?.takeIf { it.isNotBlank() }
             ?: error("Укажите API-ключ DeepL в настройках")
         val api = if (isFreeKey(key)) freeApi else paidApi

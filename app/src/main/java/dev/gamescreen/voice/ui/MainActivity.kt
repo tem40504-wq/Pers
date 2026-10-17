@@ -101,12 +101,12 @@ private fun Screen(
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Text("GameScreen Voice 0.1.2", style = MaterialTheme.typography.headlineSmall)
-            Text("MVP: Accessibility → DeepL → плавающее окно → TTS")
+            Text("GameScreen Voice 0.1.3", style = MaterialTheme.typography.headlineSmall)
+            Text("MVP: Accessibility → перевод (офлайн или DeepL) → плавающее окно → TTS")
             Card { Column(Modifier.padding(12.dp)) {
                 Text("Согласие на обработку текста", style = MaterialTheme.typography.titleMedium)
                 Text("Сервис читает доступный для Accessibility текст только из указанного приложения. " +
-                    "Текст отправляется выбранному провайдеру перевода DeepL. " +
+                    "Без ключа DeepL текст переводится на телефоне (Google ML Kit); с ключом — отправляется в DeepL. " +
                     "История сохраняется локально только по выбору. " +
                     "Не используйте с банковскими приложениями, чатами и конфиденциальной информацией.")
                 Row { Checkbox(checked = s.consent, onCheckedChange = { vm.setConsent(it) })
@@ -130,9 +130,14 @@ private fun Screen(
             Text("Для игр с графическими субтитрами потребуется отдельный OCR-модуль. " +
                 "Без указанного пакета автоматическое чтение отключено.",
                 style = MaterialTheme.typography.bodySmall)
+            Text("Перевод: ${if (s.offlineOnly || !apiKeySaved) "офлайн на телефоне (бесплатно, без ключа)" else "DeepL"}",
+                style = MaterialTheme.typography.titleSmall)
+            Text("Ключ DeepL необязателен. Без него перевод выполняется на телефоне через Google ML Kit; " +
+                "при первом переводе загружается языковая модель ~30 МБ (нужен интернет), дальше работает офлайн.",
+                style = MaterialTheme.typography.bodySmall)
             OutlinedTextField(
                 secret, { secret = it }, modifier = Modifier.fillMaxWidth(),
-                label = { Text(if (apiKeySaved) "DeepL API key (уже сохранён)" else "DeepL API key") },
+                label = { Text(if (apiKeySaved) "DeepL API key (уже сохранён)" else "DeepL API key (необязательно)") },
                 visualTransformation = PasswordVisualTransformation(), singleLine = true
             )
             Text("Free или Pro определяется по ключу автоматически: ключи DeepL Free оканчиваются на «:fx».",
@@ -156,6 +161,8 @@ private fun Screen(
             Slider(s.sizeScale, { vm.edit(s.copy(sizeScale = it)) }, valueRange = .7f..1.2f)
             Row { Switch(s.darkTheme, { vm.edit(s.copy(darkTheme = it)) });
                 Text("Тёмная тема", Modifier.padding(12.dp)) }
+            Row { Switch(s.offlineOnly, { vm.edit(s.copy(offlineOnly = it)) });
+                Text("Всегда офлайн-перевод, даже если есть ключ DeepL", Modifier.padding(12.dp)) }
             Row { Switch(s.keepHistory, { vm.edit(s.copy(keepHistory = it)) });
                 Text("Сохранять историю локально", Modifier.padding(12.dp)) }
             Button(onClick = { vm.save(secret); secret = ""; apiKeySaved = vm.hasApiKey(); savedMessage = "Настройки сохранены" },
@@ -164,8 +171,6 @@ private fun Screen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = {
                     when {
-                        !apiKeySaved && secret.isBlank() ->
-                            savedMessage = "Сначала укажите API-ключ DeepL и проверьте перевод кнопкой «Тест»"
                         s.selectedPackage.trim().isBlank() ->
                             savedMessage = "Укажите пакет приложения для чтения текста"
                         else -> {
@@ -187,7 +192,7 @@ private fun Screen(
                 apiKeySaved = vm.hasApiKey()
                 vm.sendDemo()
             }, modifier = Modifier.fillMaxWidth()) {
-                Text("Тест: перевести Hello world (без Accessibility)")
+                Text("Тест: перевести Hello world")
             }
             Text("Состояние: ${translation.status}")
             if (translation.translated.isNotBlank()) Text(translation.translated)

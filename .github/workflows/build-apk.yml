@@ -38,7 +38,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: GameScreenVoice-0.1.2-debug-apk
+          name: GameScreenVoice-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
 
       # Result (APK or build log) is also pushed to branch build-apk-output.
@@ -48,7 +48,7 @@ jobs:
           mkdir -p /tmp/out
           cp build.log /tmp/out/ 2>/dev/null || echo "no build.log" > /tmp/out/build.log
           if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
-            cp app/build/outputs/apk/debug/app-debug.apk /tmp/out/GameScreenVoice_0.1.2_debug.apk
+            cp app/build/outputs/apk/debug/app-debug.apk /tmp/out/GameScreenVoice_debug.apk
             echo success > /tmp/out/STATUS
           else
             echo failed > /tmp/out/STATUS

@@ -104,7 +104,9 @@ class TranslationPipeline(
             val cached = if (demo) null else synchronized(cacheLock) { memoryCache[cacheKey] }
             val result = cached ?: withContext(Dispatchers.IO) {
                 (if (s.keepHistory && !demo) dao.cached(capture.text, source, target) else null)
-                    ?: repository.translate(capture.text, source, target).also { translation ->
+                    ?: repository.translate(capture.text, source, target) { msg ->
+                        mutableState.value = TranslationState(capture.text, "", msg)
+                    }.also { translation ->
                         if (s.keepHistory && !demo) {
                             dao.insert(TranslationRecord(
                                 packageName = capture.packageName,
@@ -115,7 +117,8 @@ class TranslationPipeline(
                     }
             }
             synchronized(cacheLock) { memoryCache[cacheKey] = result }
-            mutableState.value = TranslationState(capture.text, result, if (demo) "Тест пройден" else "Готово")
+            val via = repository.label().let { if (it.isBlank()) "" else " · $it" }
+            mutableState.value = TranslationState(capture.text, result, (if (demo) "Тест пройден" else "Готово") + via)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

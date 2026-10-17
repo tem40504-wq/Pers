@@ -15,7 +15,9 @@ data class VoiceSettings(
     val selectedPackage: String = "",
     val darkTheme: Boolean = true,
     val keepHistory: Boolean = false,
-    val consent: Boolean = false
+    val consent: Boolean = false,
+    /** Always use on-device ML Kit, even if a DeepL key is saved. */
+    val offlineOnly: Boolean = false
 )
 
 class SettingsStore(context: Context) {
@@ -34,7 +36,8 @@ class SettingsStore(context: Context) {
         selectedPackage = prefs.getString(KEY_PACKAGE, "") ?: "",
         darkTheme = prefs.getBoolean("dark", true),
         keepHistory = prefs.getBoolean("history", false),
-        consent = prefs.getBoolean("consent", false)
+        consent = prefs.getBoolean("consent", false),
+        offlineOnly = prefs.getBoolean("offline", false)
     )
     fun save(s: VoiceSettings) {
         prefs.edit()
@@ -49,6 +52,7 @@ class SettingsStore(context: Context) {
             .putBoolean("dark", s.darkTheme)
             .putBoolean("history", s.keepHistory)
             .putBoolean("consent", s.consent)
+            .putBoolean("offline", s.offlineOnly)
             .apply()
     }
     /** Consent is stored immediately, independent of the «Save» button. */
