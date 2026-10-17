@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">GameScreen Voice</string>
+    <string name="accessibility_description">Читает отображаемый текст в выбранных приложениях для перевода и озвучивания по команде пользователя. Текст может отправляться выбранному API перевода. Не читает поля паролей.</string>
+</resources>
