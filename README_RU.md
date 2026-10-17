@@ -3,7 +3,7 @@
 **Статус:** исходники исправлены относительно 0.1.1. См. `CHANGELOG_0.1.2_RU.md`. 31 статическая проверка проходит (`python tests/static_check.py`), но они не гарантируют успешную сборку. APK не собран и не протестирован на реальном Android: в рабочей среде нет Android SDK и установленного Gradle. Возможны ошибки совместимости, выявляемые при первой Gradle Sync.
 
 ### Стек
-Kotlin 2.3.21 / AGP 8.9.2 / Gradle 8.11.1 / Jetpack Compose / minSdk29 / compileSdk35 / targetSdk35 / Room / Retrofit / OkHttp / Android Keystore / Android TextToSpeech / AccessibilityService / foreground specialUse WindowManager overlay.
+Kotlin 2.2.21 / AGP 8.9.2 / Gradle 8.11.1 / Jetpack Compose / minSdk29 / compileSdk35 / targetSdk35 / Room / Retrofit / OkHttp / Android Keystore / Android TextToSpeech / AccessibilityService / foreground specialUse WindowManager overlay.
 
 ### Сборка на Windows
 1. Установите Android Studio, Android SDK Platform 35, Build Tools 35.0.0, JDK 17.
