@@ -35,6 +35,14 @@ jobs:
           set -o pipefail
           gradle --no-daemon --stacktrace :app:assembleDebug 2>&1 | tee build.log
 
+      - name: Verify APK (badging + signature)
+        if: success()
+        run: |
+          BT="$ANDROID_HOME/build-tools/35.0.0"
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          { "$BT/aapt2" dump badging "$APK" | head -40; echo "--- testOnly:"; "$BT/aapt2" dump xmltree --file AndroidManifest.xml "$APK" | grep -i testOnly || echo none; echo "--- apksigner:"; "$BT/apksigner" verify --verbose --print-certs "$APK"; } > verify.txt 2>&1 || true
+          cat verify.txt
+
       - uses: actions/upload-artifact@v4
         if: success()
         with:
@@ -47,6 +55,7 @@ jobs:
         run: |
           mkdir -p /tmp/out
           cp build.log /tmp/out/ 2>/dev/null || echo "no build.log" > /tmp/out/build.log
+          cp verify.txt /tmp/out/ 2>/dev/null || true
           if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
             cp app/build/outputs/apk/debug/app-debug.apk /tmp/out/GameScreenVoice_debug.apk
             echo success > /tmp/out/STATUS
