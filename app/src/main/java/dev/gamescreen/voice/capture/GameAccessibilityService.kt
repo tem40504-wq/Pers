@@ -1,6 +1,15 @@
 package dev.gamescreen.voice.capture
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityService.ScreenshotResult
+import android.accessibilityservice.AccessibilityService.TakeScreenshotCallback
+import android.graphics.Bitmap
+import android.graphics.ColorSpace
+import android.os.Build
+import android.view.Display
+import dev.gamescreen.voice.platform.OverlayService
+import kotlinx.coroutines.isActive
+import java.util.concurrent.atomic.AtomicBoolean
 import android.content.ComponentName
 import android.content.Context
 import android.content.SharedPreferences
@@ -30,6 +39,18 @@ class GameAccessibilityService : AccessibilityService() {
         private const val MAX_NODES = 200
         private const val MAX_CHARS = 1400
         private val WHITESPACE = Regex("\\s+")
+        @Volatile private var activeService: GameAccessibilityService? = null
+        private val NOISE_WORDS = Regex("(?i)^(play|pause|subscribe|like|share|comments?|settings|skip ad|skip|next|previous|menu|options|подписаться|комментарии|назад|пропустить)$")
+        private val TIMECODE = Regex("^\\d{1,2}:\\d{2}(?::\\d{2})?(?:\\s*/\\s*\\d{1,2}:\\d{2}(?::\\d{2})?)?$")
+
+        /** «Скан OCR» in the floating window. */
+        fun requestOcrNow(context: Context) {
+            val active = activeService
+            if (active == null) {
+                (context.applicationContext as? GameVoiceApp)?.pipeline
+                    ?.postStatus("OCR: включите GameScreen Voice в «Специальных возможностях»")
+            } else active.requestOcr(manual = true)
+        }
 
         fun isEnabled(context: Context): Boolean {
             val expected = ComponentName(context, GameAccessibilityService::class.java)
@@ -44,6 +65,9 @@ class GameAccessibilityService : AccessibilityService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var pending: Job? = null
     private var pendingSince = 0L
+    private val ocrBusy = AtomicBoolean(false)
+    private var ocrEngine: OcrEngine? = null
+    private var ocrLoop: Job? = null
 
     // Strong reference: SharedPreferences holds listeners weakly.
     private val packageListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -54,6 +78,17 @@ class GameAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         applyPackageFilter()
         app.settings.registerListener(packageListener)
+        activeService = this
+        ocrLoop?.cancel()
+        ocrLoop = scope.launch {
+            while (isActive) {
+                val c = app.settings.load()
+                val ocrOn = c.ocrEnabled && !c.audioMode
+                delay(if (ocrOn) c.ocrIntervalMs.coerceIn(2000, 15000) else 1500)
+                val now = app.settings.load()
+                if (now.ocrEnabled && !now.audioMode && app.pipeline.isEnabled) requestOcr(manual = false)
+            }
+        }
     }
 
     /** The system delivers events only from the selected package (privacy + far fewer wake-ups). */
@@ -72,6 +107,7 @@ class GameAccessibilityService : AccessibilityService() {
             event.eventType != AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) return
         val settings = app.settings.load()
         if (settings.audioMode) return // audio mode translates speech, not screen text
+        if (settings.ocrEnabled) return // subtitles are read from screenshots instead
         val allowed = settings.selectedPackage
         if (allowed.isBlank() || allowed == packageName || allowed == "com.android.systemui") return
         if (event.packageName?.toString() != allowed) return
@@ -137,9 +173,114 @@ class GameAccessibilityService : AccessibilityService() {
         try { node.recycle() } catch (_: IllegalStateException) { }
     }
 
+    /** Never capture the screen outside the package explicitly chosen by the user. */
+    private fun isSelectedAppForeground(): Boolean {
+        val target = app.settings.load().selectedPackage.trim()
+        if (target.isBlank() || target == packageName || target == "com.android.systemui") return false
+        val root = rootInActiveWindow ?: return false
+        return try { root.packageName?.toString() == target } finally { recycle(root) }
+    }
+
+    /** Drops obvious player controls and timecodes recognised by OCR. */
+    private fun filterCaptionNoise(text: String): String =
+        text.lines().map { it.trim() }.filter { it.isNotBlank() }
+            .filterNot { NOISE_WORDS.matches(it) || TIMECODE.matches(it) }
+            .joinToString("\n").take(1400)
+
+    private fun reportOcr(message: String, manual: Boolean) {
+        // Automatic OCR runs every few seconds: do not cover a translation with repetitive messages.
+        if (manual || message.startsWith("OCR: ошибка")) app.pipeline.postStatus(message)
+    }
+
+    /** OCR of the bottom part of the screen (subtitles), ported from 0.2.2. Android 11+. */
+    private fun requestOcr(manual: Boolean) {
+        if (!app.pipeline.isEnabled) {
+            reportOcr("OCR: сначала нажмите «Запустить»", manual); return
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            reportOcr("OCR работает на Android 11 и новее", manual); return
+        }
+        if (!isSelectedAppForeground()) {
+            reportOcr("OCR: откройте выбранное приложение", manual); return
+        }
+        if (!ocrBusy.compareAndSet(false, true)) {
+            reportOcr("OCR: предыдущий снимок ещё обрабатывается", manual); return
+        }
+        // Our own window must not get into the screenshot.
+        OverlayService.setCaptureHidden(true)
+        scope.launch {
+            delay(200)
+            if (!app.pipeline.isEnabled || !isSelectedAppForeground()) {
+                OverlayService.setCaptureHidden(false)
+                ocrBusy.set(false)
+                return@launch
+            }
+            try {
+                takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, object : TakeScreenshotCallback {
+                    override fun onFailure(errorCode: Int) {
+                        OverlayService.setCaptureHidden(false)
+                        ocrBusy.set(false)
+                        reportOcr("OCR: ошибка снимка ($errorCode) — возможно, экран защищён", manual)
+                    }
+
+                    override fun onSuccess(screenshot: ScreenshotResult) {
+                        OverlayService.setCaptureHidden(false)
+                        var whole: Bitmap? = null
+                        var part: Bitmap? = null
+                        try {
+                            val hw = screenshot.hardwareBuffer
+                            try {
+                                val space = screenshot.colorSpace ?: ColorSpace.get(ColorSpace.Named.SRGB)
+                                whole = Bitmap.wrapHardwareBuffer(hw, space)
+                                    ?.copy(Bitmap.Config.ARGB_8888, false)
+                                    ?: throw IllegalStateException("снимок недоступен")
+                            } finally { hw.close() }
+                            val image = whole!!
+                            val c = app.settings.load()
+                            val top = image.height * (100 - c.ocrBottomPercent.coerceIn(15, 100)) / 100
+                            part = if (top > 0) Bitmap.createBitmap(image, 0, top, image.width, image.height - top) else image
+                            val crop = part!!
+                            val engine = ocrEngine ?: OcrEngine().also { ocrEngine = it }
+                            engine.recognize(crop) { result ->
+                                try {
+                                    if (!app.pipeline.isEnabled) return@recognize
+                                    result.onSuccess { recognized ->
+                                        val clean = recognized.trim().take(1400)
+                                        val s2 = app.settings.load()
+                                        val text = if (s2.subtitleNoiseFilter) filterCaptionNoise(clean) else clean
+                                        if (text.isNotBlank()) app.pipeline.submit(s2.selectedPackage, text)
+                                        else reportOcr("OCR: текст не найден", manual)
+                                    }.onFailure {
+                                        reportOcr("OCR: ошибка распознавания: ${it.message.orEmpty().take(70)}", manual)
+                                    }
+                                } finally {
+                                    if (crop !== image) crop.recycle()
+                                    image.recycle()
+                                    ocrBusy.set(false)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            if (part !== whole) part?.recycle()
+                            whole?.recycle()
+                            ocrBusy.set(false)
+                            reportOcr("OCR: ошибка обработки: ${e.message.orEmpty().take(70)}", manual)
+                        }
+                    }
+                })
+            } catch (e: Exception) {
+                OverlayService.setCaptureHidden(false)
+                ocrBusy.set(false)
+                reportOcr("OCR: ошибка снимка: ${e.message.orEmpty().take(70)}", manual)
+            }
+        }
+    }
+
     override fun onInterrupt() { pending?.cancel() }
     override fun onDestroy() {
         app.settings.unregisterListener(packageListener)
+        if (activeService === this) activeService = null
+        ocrLoop?.cancel()
+        ocrEngine?.close()
         pending?.cancel()
         scope.cancel()
         super.onDestroy()

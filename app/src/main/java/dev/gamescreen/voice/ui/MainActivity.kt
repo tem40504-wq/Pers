@@ -138,7 +138,7 @@ private fun Screen(
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Text("GameScreen Voice 0.2.1", style = MaterialTheme.typography.headlineSmall)
+            Text("GameScreen Voice 0.2.3", style = MaterialTheme.typography.headlineSmall)
             Text(if (s.audioMode) "Звук приложения → распознавание речи → перевод → озвучка"
                 else "Текст на экране → перевод → окно → озвучка")
             Text("Режим", style = MaterialTheme.typography.titleSmall)
@@ -180,9 +180,22 @@ private fun Screen(
             )
             OutlinedButton(onClick = { vm.loadInstalledApps(); showPicker = true },
                 modifier = Modifier.fillMaxWidth()) { Text("Выбрать из установленных приложений") }
-            Text("Для игр с графическими субтитрами потребуется отдельный OCR-модуль. " +
-                "Без указанного пакета автоматическое чтение отключено.",
-                style = MaterialTheme.typography.bodySmall)
+            Text("Без указанного пакета чтение экрана отключено.", style = MaterialTheme.typography.bodySmall)
+            Row { Switch(s.ocrEnabled, { vm.edit(s.copy(ocrEnabled = it)) });
+                Text("Субтитры с картинки (OCR, Android 11+)", Modifier.padding(12.dp)) }
+            if (s.ocrEnabled) {
+                Text("Для игр и видео, где текст нарисован, а не доступен как текст. Снимок нижней части экрана " +
+                    "распознаётся на телефоне (латиница), картинки никуда не отправляются.",
+                    style = MaterialTheme.typography.bodySmall)
+                Text("Область: нижние ${s.ocrBottomPercent}% экрана")
+                Slider(s.ocrBottomPercent.toFloat(), { vm.edit(s.copy(ocrBottomPercent = it.toInt())) },
+                    valueRange = 15f..100f)
+                Text("Сканировать каждые ${"%.1f".format(s.ocrIntervalMs / 1000f)} с (чаще — больше расход батареи)")
+                Slider(s.ocrIntervalMs.toFloat(), { vm.edit(s.copy(ocrIntervalMs = (it / 500).toLong() * 500)) },
+                    valueRange = 2000f..15000f)
+                Row { Switch(s.subtitleNoiseFilter, { vm.edit(s.copy(subtitleNoiseFilter = it)) });
+                    Text("Пропускать кнопки плеера и таймкоды", Modifier.padding(12.dp)) }
+            }
             }
             Text("Перевод: ${if (s.offlineOnly || !apiKeySaved) "офлайн на телефоне (бесплатно, без ключа)" else "DeepL"}",
                 style = MaterialTheme.typography.titleSmall)
@@ -205,7 +218,10 @@ private fun Screen(
             OutlinedTextField(s.voiceName, { vm.edit(s.copy(voiceName = it)) },
                 label = { Text("Имя установленного TTS-голоса (необязательно)") },
                 modifier = Modifier.fillMaxWidth(), singleLine = true)
-            Text("Скорость речи: ${"%.2f".format(s.speechSpeed)}×")
+            Row { Switch(s.autoSpeechSpeed, { vm.edit(s.copy(autoSpeechSpeed = it)) });
+                Text("Автоскорость речи (подстраивается под темп фраз)", Modifier.padding(12.dp)) }
+            Text(if (s.autoSpeechSpeed) "Поправка к автоскорости: ${"%.2f".format(s.speechSpeed)}×"
+                else "Скорость речи: ${"%.2f".format(s.speechSpeed)}×")
             Slider(s.speechSpeed, { vm.edit(s.copy(speechSpeed = it)) }, valueRange = .5f..1.7f)
             Text("Задержка обработки: ${s.delayMs} мс")
             Slider(s.delayMs.toFloat(), { vm.edit(s.copy(delayMs = it.toLong())) }, valueRange = 200f..2500f)

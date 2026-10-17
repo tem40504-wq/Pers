@@ -22,6 +22,10 @@ class TTSManager(
     private val audioManager = context.getSystemService(AudioManager::class.java)
     private val main = Handler(Looper.getMainLooper())
     private var counter = 0L
+    private val pacer = SpeechPacer()
+    /** Words per minute chosen for the last phrase (adaptive mode), shown in the overlay. */
+    @Volatile var lastEstimatedWpm = 0
+        private set
 
     /** Utterances queued or playing. The original is ducked while this set is non-empty. */
     private val active: MutableSet<String> = ConcurrentHashMap.newKeySet()
@@ -80,14 +84,21 @@ class TTSManager(
         audioManager?.abandonAudioFocusRequest(focusRequest)
     }
 
-    private fun configure(): Boolean {
+    private fun configure(text: String = ""): Boolean {
         if (!ready) return false
         val s = settings.load()
         val locale = Locale.forLanguageTag(s.targetLang.lowercase())
         val languageResult = engine.setLanguage(locale)
         if (languageResult == TextToSpeech.LANG_MISSING_DATA ||
             languageResult == TextToSpeech.LANG_NOT_SUPPORTED) return false
-        engine.setSpeechRate(s.speechSpeed.coerceIn(.5f, 1.7f))
+        if (s.autoSpeechSpeed && text.isNotBlank()) {
+            // 140 words/min ≈ rate 1.0 for typical Android voices (approximation, voices differ).
+            lastEstimatedWpm = pacer.speedFor(text, true, 140)
+            engine.setSpeechRate((lastEstimatedWpm / 140f * s.speechSpeed).coerceIn(.6f, 1.8f))
+        } else {
+            lastEstimatedWpm = 0
+            engine.setSpeechRate(s.speechSpeed.coerceIn(.5f, 1.7f))
+        }
         if (s.voiceName.isNotBlank()) {
             engine.voices?.firstOrNull { it.name == s.voiceName && it.locale.language == locale.language }
                 ?.let { engine.voice = it }
@@ -97,7 +108,9 @@ class TTSManager(
 
     /** [queue] = true appends after the current phrase (speech mode), false interrupts it (screen text). */
     fun speak(text: String, queue: Boolean = false): Boolean {
-        if (text.isBlank() || !configure()) return false
+        if (text.isBlank()) return false
+        pacer.observeCaption(text, android.os.SystemClock.elapsedRealtime())
+        if (!configure(text)) return false
         val id = "gsv_${counter++}"
         if (!queue) active.clear()
         active.add(id)
@@ -120,6 +133,7 @@ class TTSManager(
 
     fun release() {
         engine.stop(); engine.shutdown(); ready = false
+        pacer.reset()
         active.clear()
         releaseDuck()
     }

@@ -13,10 +13,10 @@ android {
         applicationId = "dev.gamescreen.voice"
         minSdk = 29
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.2.1"
+        versionCode = 9
+        versionName = "0.2.3"
         // Phones only: x86/x86_64 ML Kit libraries (~37 MB) are for emulators.
-        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+        ndk { abiFilters += listOf("arm64-v8a") }
     }
     // Fixed debug key in the repo: every build (GitHub Actions or local) is signed the same way,
     // so new versions install over old ones without uninstalling.
@@ -67,4 +67,6 @@ dependencies {
     // Offline speech recognition (audio mode).
     implementation("net.java.dev.jna:jna:5.13.0@aar")
     implementation("com.alphacephei:vosk-android:0.3.47")
+    // Subtitle OCR (from 0.2.2): bundled Latin model, works without Google Play download.
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 }

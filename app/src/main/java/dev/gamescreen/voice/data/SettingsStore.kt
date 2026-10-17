@@ -23,7 +23,15 @@ data class VoiceSettings(
     /** Speak every new translation automatically. */
     val autoSpeak: Boolean = true,
     /** Ask other apps to lower their volume while the translation is spoken (some players pause instead). */
-    val duckOriginal: Boolean = false
+    val duckOriginal: Boolean = false,
+    /** Screen-text mode: read subtitles from a screenshot (ML Kit OCR, Android 11+) instead of Accessibility text. */
+    val ocrEnabled: Boolean = false,
+    val ocrIntervalMs: Long = 4000L,
+    /** OCR only the bottom N percent of the screen (subtitles). */
+    val ocrBottomPercent: Int = 35,
+    val subtitleNoiseFilter: Boolean = true,
+    /** Adapt TTS speed to how fast phrases/subtitles change (0.2.2). Off = «Скорость речи» slider. */
+    val autoSpeechSpeed: Boolean = true
 )
 
 class SettingsStore(context: Context) {
@@ -46,7 +54,12 @@ class SettingsStore(context: Context) {
         offlineOnly = prefs.getBoolean("offline", false),
         audioMode = prefs.getBoolean("audio_mode", true),
         autoSpeak = prefs.getBoolean("auto_speak", true),
-        duckOriginal = prefs.getBoolean("duck", false)
+        duckOriginal = prefs.getBoolean("duck", false),
+        ocrEnabled = prefs.getBoolean("ocr", false),
+        ocrIntervalMs = prefs.getLong("ocr_interval", 4000L),
+        ocrBottomPercent = prefs.getInt("ocr_bottom", 35),
+        subtitleNoiseFilter = prefs.getBoolean("ocr_filter", true),
+        autoSpeechSpeed = prefs.getBoolean("auto_speed", true)
     )
     fun save(s: VoiceSettings) {
         prefs.edit()
@@ -65,6 +78,11 @@ class SettingsStore(context: Context) {
             .putBoolean("audio_mode", s.audioMode)
             .putBoolean("auto_speak", s.autoSpeak)
             .putBoolean("duck", s.duckOriginal)
+            .putBoolean("ocr", s.ocrEnabled)
+            .putLong("ocr_interval", s.ocrIntervalMs)
+            .putInt("ocr_bottom", s.ocrBottomPercent)
+            .putBoolean("ocr_filter", s.subtitleNoiseFilter)
+            .putBoolean("auto_speed", s.autoSpeechSpeed)
             .apply()
     }
     /** Consent is stored immediately, independent of the «Save» button. */

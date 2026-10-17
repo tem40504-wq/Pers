@@ -19,6 +19,8 @@ import android.media.projection.MediaProjectionManager
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock
+import dev.gamescreen.voice.capture.GameAccessibilityService
 import dev.gamescreen.voice.audio.SpeechCaptureEngine
 import dev.gamescreen.voice.audio.VoskModels
 import android.os.Build
@@ -47,6 +49,12 @@ class OverlayService : Service() {
         /** Audio mode: MediaProjection consent result from MainActivity. */
         const val EXTRA_RESULT_CODE = "projection_result_code"
         const val EXTRA_RESULT_DATA = "projection_result_data"
+        @Volatile private var active: OverlayService? = null
+
+        /** Hide our own window while the OCR screenshot is taken (otherwise we would translate ourselves). */
+        fun setCaptureHidden(hidden: Boolean) {
+            active?.panel?.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
+        }
     }
     private val app get() = application as GameVoiceApp
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -62,11 +70,19 @@ class OverlayService : Service() {
     private var speakJob: Job? = null
     private var projection: MediaProjection? = null
     private var speech: SpeechCaptureEngine? = null
+    // Panel state (from 0.2.2): collapsed to an edge tab, text hidden, voice paused.
+    private var compact = false
+    private var showText = true
+    private var pausedSpeech = false
+    private var panelHeader: LinearLayout? = null
+    private var miniButton: Button? = null
+    private val recentSpoken = LinkedHashMap<String, Long>()
 
     override fun onCreate() {
         super.onCreate()
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         tts = TTSManager(this, app.settings) { msg -> app.pipeline.postStatus(msg) }
+        active = this
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -111,7 +127,16 @@ class OverlayService : Service() {
         if (speakJob?.isActive != true) {
             speakJob = scope.launch {
                 app.pipeline.results.collect { item ->
-                    if (app.settings.load().autoSpeak) tts.speak(item.text, queue = item.queue)
+                    if (pausedSpeech || !app.settings.load().autoSpeak) return@collect
+                    // OCR may re-read the same subtitle after a short flicker: do not repeat it for 12 s.
+                    val now = SystemClock.elapsedRealtime()
+                    recentSpoken.entries.removeAll { now - it.value > 12_000L }
+                    if (!item.queue && recentSpoken.containsKey(item.text)) return@collect
+                    recentSpoken[item.text] = now
+                    if (tts.speak(item.text, queue = item.queue) && tts.lastEstimatedWpm > 0) {
+                        app.pipeline.postStatus(app.pipeline.state.value.status.substringBefore(" · ≈") +
+                            " · ≈${tts.lastEstimatedWpm} сл/мин")
+                    }
                 }
             }
         }
@@ -182,7 +207,7 @@ class OverlayService : Service() {
         val root = panel ?: return
         val options = app.settings.load()
         root.alpha = options.overlayAlpha.coerceIn(.6f, 1f)
-        params.width = overlayWidth(options.sizeScale)
+        params.width = if (compact) dp(74) else overlayWidth(options.sizeScale)
         clampPosition()
         try { wm.updateViewLayout(root, params) } catch (_: Exception) { }
     }
@@ -225,16 +250,24 @@ class OverlayService : Service() {
             }
         }
         val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        val title = label("☰  GameScreen Voice", 13f).apply {
+        panelHeader = header
+        val title = label("☰ GSV", 13f).apply {
             setTypeface(null, android.graphics.Typeface.BOLD)
+            contentDescription = "Удерживайте и перетащите, чтобы передвинуть окно"
         }
         header.addView(title, LinearLayout.LayoutParams(0, dp(42), 1f))
-        header.addView(button("−") {
-            content?.visibility = if (content?.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-            try { wm.updateViewLayout(root, params) } catch (_: Exception) { }
+        header.addView(button("Текст") { toggleText() })
+        header.addView(button("В край") { setCompact(true) })
+        header.addView(button("×") { stopSelf() }.apply {
+            contentDescription = "Остановить перевод и закрыть окно"
         })
-        header.addView(button("×") { stopSelf() })
         root.addView(header)
+        val mini = button("GSV ▶") { setCompact(false) }.apply {
+            visibility = View.GONE
+            contentDescription = "Развернуть GameScreen Voice"
+        }
+        miniButton = mini
+        root.addView(mini)
 
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         original = label("Нет текста", 12f)
@@ -257,6 +290,22 @@ class OverlayService : Service() {
         }, LinearLayout.LayoutParams(0, dp(46), 1f))
         actions.addView(button("Стоп") { tts.stop() }, LinearLayout.LayoutParams(0, dp(46), 1f))
         box.addView(actions)
+        val tools = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val pause = button("Пауза озвучки") { }
+        pause.setOnClickListener {
+            pausedSpeech = !pausedSpeech
+            if (pausedSpeech) tts.stop()
+            pause.text = if (pausedSpeech) "Продолжить" else "Пауза озвучки"
+            app.pipeline.postStatus(if (pausedSpeech) "Озвучка на паузе · перевод продолжается" else "Озвучка включена")
+        }
+        tools.addView(pause, LinearLayout.LayoutParams(0, dp(44), 1f))
+        tools.addView(button("Повторить") {
+            if (!tts.speak(app.pipeline.state.value.translated)) status.text = "Нет перевода или голоса"
+        }, LinearLayout.LayoutParams(0, dp(44), 1f))
+        tools.addView(button("Скан OCR") {
+            GameAccessibilityService.requestOcrNow(this@OverlayService)
+        }, LinearLayout.LayoutParams(0, dp(44), 1f))
+        box.addView(tools)
         content = box
         root.addView(box)
         title.setOnTouchListener(object : View.OnTouchListener {
@@ -309,7 +358,33 @@ class OverlayService : Service() {
             .addAction(android.R.drawable.ic_media_pause, "Остановить", stopIntent)
             .build()
     }
+    /** «Текст»: hide only the text block; translation and voice continue. */
+    private fun toggleText() {
+        showText = !showText
+        content?.visibility = if (showText) View.VISIBLE else View.GONE
+        panel?.let { try { wm.updateViewLayout(it, params) } catch (_: Exception) { } }
+    }
+
+    /** «В край»: collapse to a small «GSV ▶» tab at the nearest screen edge. Unlike «×», keeps working. */
+    private fun setCompact(mini: Boolean) {
+        compact = mini
+        panelHeader?.visibility = if (mini) View.GONE else View.VISIBLE
+        miniButton?.visibility = if (mini) View.VISIBLE else View.GONE
+        content?.visibility = if (!mini && showText) View.VISIBLE else View.GONE
+        if (mini) {
+            val screenWidth = resources.displayMetrics.widthPixels
+            val oldCenter = params.x + params.width / 2
+            params.width = dp(74)
+            params.x = if (oldCenter < screenWidth / 2) 0 else (screenWidth - params.width).coerceAtLeast(0)
+        } else {
+            params.width = overlayWidth(app.settings.load().sizeScale)
+        }
+        clampPosition()
+        panel?.let { try { wm.updateViewLayout(it, params) } catch (_: Exception) { } }
+    }
+
     override fun onDestroy() {
+        if (active === this) active = null
         stopSpeechCapture()
         speakJob?.cancel()
         collectJob?.cancel(); scope.cancel()
