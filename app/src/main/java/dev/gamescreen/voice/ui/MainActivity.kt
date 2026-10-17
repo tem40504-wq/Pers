@@ -138,7 +138,7 @@ private fun Screen(
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Text("GameScreen Voice 0.2.0", style = MaterialTheme.typography.headlineSmall)
+            Text("GameScreen Voice 0.2.1", style = MaterialTheme.typography.headlineSmall)
             Text(if (s.audioMode) "Звук приложения → распознавание речи → перевод → озвучка"
                 else "Текст на экране → перевод → окно → озвучка")
             Text("Режим", style = MaterialTheme.typography.titleSmall)
@@ -223,8 +223,8 @@ private fun Screen(
                 Text("Всегда офлайн-перевод, даже если есть ключ DeepL", Modifier.padding(12.dp)) }
             Row { Switch(s.keepHistory, { vm.edit(s.copy(keepHistory = it)) });
                 Text("Сохранять историю локально", Modifier.padding(12.dp)) }
-            Button(onClick = { vm.save(secret); secret = ""; apiKeySaved = vm.hasApiKey(); savedMessage = "Настройки сохранены" },
-                modifier = Modifier.fillMaxWidth()) { Text("Сохранить настройки") }
+            Button(onClick = { vm.save(secret); secret = ""; apiKeySaved = vm.hasApiKey(); savedMessage = "Настройки сохраняются автоматически; ключ сохранён" },
+                modifier = Modifier.fillMaxWidth()) { Text("Сохранить API-ключ") }
             if (savedMessage.isNotEmpty()) Text(savedMessage)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = {

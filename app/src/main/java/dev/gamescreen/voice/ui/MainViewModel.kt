@@ -24,7 +24,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /** null = not loaded yet. */
     val installedApps = mutableApps.asStateFlow()
 
-    fun edit(value: VoiceSettings) { mutableSettings.value = value }
+    /** Every change is stored at once, so a running service sees it immediately (no «Save» needed). */
+    fun edit(value: VoiceSettings) {
+        mutableSettings.value = value
+        app.settings.save(value)
+    }
     fun save(key: String) {
         app.settings.save(mutableSettings.value)
         if (key.isNotBlank()) app.secrets.writeApiKey(key)

@@ -66,7 +66,7 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        tts = TTSManager(this, app.settings)
+        tts = TTSManager(this, app.settings) { msg -> app.pipeline.postStatus(msg) }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

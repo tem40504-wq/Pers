@@ -41,7 +41,7 @@ check('DeepL returns readable errors', all(k in src('data/DeepLTranslationReposi
 check('Foreground-service API 29-33 compatibility', 'Build.VERSION.SDK_INT >= 34' in src('platform/OverlayService.kt') and 'startForeground(33, createNotification())' in src('platform/OverlayService.kt'))
 check('Overlay drag constrained', 'coerceIn(0, maxX)' in src('platform/OverlayService.kt') and 'coerceIn(0, maxY)' in src('platform/OverlayService.kt'))
 check('TTS language checked', 'TextToSpeech.LANG_MISSING_DATA' in src('platform/TTSManager.kt'))
-check('Android SDK bounds', all(k in (R/'app/build.gradle.kts').read_text() for k in ['minSdk = 29','targetSdk = 35','versionName = "0.2.0"']))
+check('Android SDK bounds', all(k in (R/'app/build.gradle.kts').read_text() for k in ['minSdk = 29','targetSdk = 35','versionName = "0.2.1"']))
 gradle = (R/'app/build.gradle.kts').read_text()
 check('No kotlinOptions DSL (compile error since Kotlin 2.2)', not re.search(r'^\s*kotlinOptions\s*\{', gradle, re.M) and 'compilerOptions' in gradle)
 overlay = src('platform/OverlayService.kt')
