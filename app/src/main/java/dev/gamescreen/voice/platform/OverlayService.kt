@@ -14,7 +14,13 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
+import android.media.projection.MediaProjection
+import android.media.projection.MediaProjectionManager
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import dev.gamescreen.voice.audio.SpeechCaptureEngine
+import dev.gamescreen.voice.audio.VoskModels
 import android.os.Build
 import android.provider.Settings
 import android.view.Gravity
@@ -36,7 +42,12 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class OverlayService : Service() {
-    companion object { const val ACTION_STOP = "dev.gamescreen.voice.STOP" }
+    companion object {
+        const val ACTION_STOP = "dev.gamescreen.voice.STOP"
+        /** Audio mode: MediaProjection consent result from MainActivity. */
+        const val EXTRA_RESULT_CODE = "projection_result_code"
+        const val EXTRA_RESULT_DATA = "projection_result_data"
+    }
     private val app get() = application as GameVoiceApp
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var wm: WindowManager
@@ -48,6 +59,9 @@ class OverlayService : Service() {
     private lateinit var status: TextView
     private lateinit var tts: TTSManager
     private var collectJob: Job? = null
+    private var speakJob: Job? = null
+    private var projection: MediaProjection? = null
+    private var speech: SpeechCaptureEngine? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -59,12 +73,21 @@ class OverlayService : Service() {
         if (intent?.action == ACTION_STOP) { stopSelf(); return START_NOT_STICKY }
         // startForeground() MUST come first: after startForegroundService(), stopping the service
         // without it crashes the app ("did not then call Service.startForeground()").
+        val projectionData: Intent? = if (Build.VERSION.SDK_INT >= 33) {
+            intent?.getParcelableExtra(EXTRA_RESULT_DATA, Intent::class.java)
+        } else {
+            @Suppress("DEPRECATION") intent?.getParcelableExtra(EXTRA_RESULT_DATA)
+        }
+        val resultCode = intent?.getIntExtra(EXTRA_RESULT_CODE, 0) ?: 0
+        val audio = projectionData != null
         try {
-            // specialUse exists only since API 34; API 29-33 use the 2-argument method.
-            if (Build.VERSION.SDK_INT >= 34) {
-                startForeground(33, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-            } else {
-                startForeground(33, createNotification())
+            // specialUse exists only since API 34; mediaProjection must be declared before getMediaProjection().
+            when {
+                Build.VERSION.SDK_INT >= 34 -> startForeground(33, createNotification(),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE or
+                        (if (audio) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION else 0))
+                audio -> startForeground(33, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
+                else -> startForeground(33, createNotification())
             }
         } catch (_: Exception) {
             // e.g. ForegroundServiceStartNotAllowedException on Android 12+.
@@ -84,6 +107,14 @@ class OverlayService : Service() {
             // «Запустить» pressed again while running: apply new size/opacity without a restart.
             applyOptions()
         }
+        if (audio) startSpeechCapture(resultCode, projectionData!!) else stopSpeechCapture()
+        if (speakJob?.isActive != true) {
+            speakJob = scope.launch {
+                app.pipeline.results.collect { item ->
+                    if (app.settings.load().autoSpeak) tts.speak(item.text, queue = item.queue)
+                }
+            }
+        }
         if (collectJob?.isActive != true) {
             collectJob = scope.launch {
                 app.pipeline.state.collectLatest { ui ->
@@ -94,6 +125,43 @@ class OverlayService : Service() {
             }
         }
         return START_NOT_STICKY
+    }
+
+    private fun startSpeechCapture(resultCode: Int, data: Intent) {
+        stopSpeechCapture()
+        val manager = getSystemService(MediaProjectionManager::class.java)
+        val mp = try { manager.getMediaProjection(resultCode, data) } catch (e: Exception) { null }
+        if (mp == null) {
+            app.pipeline.postStatus("Нет разрешения на захват звука")
+            return
+        }
+        mp.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                scope.launch {
+                    // Ignore the callback of an old projection we replaced ourselves.
+                    if (projection !== mp) return@launch
+                    stopSpeechCapture()
+                    app.pipeline.postStatus("Захват звука остановлен")
+                }
+            }
+        }, Handler(Looper.getMainLooper()))
+        projection = mp
+        val language = VoskModels.languageOf(app.settings.load().sourceLang)
+        speech = SpeechCaptureEngine(
+            context = applicationContext,
+            projection = mp,
+            language = language,
+            onStatus = { msg -> app.pipeline.postStatus(msg) },
+            onPartial = { text -> app.pipeline.postPartial(text) },
+            onPhrase = { text -> app.pipeline.submitSpeech(text) }
+        ).also { it.start() }
+    }
+
+    private fun stopSpeechCapture() {
+        speech?.stop()
+        speech = null
+        projection?.let { try { it.stop() } catch (_: Exception) { } }
+        projection = null
     }
 
     private fun overlayWidth(scale: Float): Int {
@@ -242,6 +310,8 @@ class OverlayService : Service() {
             .build()
     }
     override fun onDestroy() {
+        stopSpeechCapture()
+        speakJob?.cancel()
         collectJob?.cancel(); scope.cancel()
         app.pipeline.stop()
         tts.release()

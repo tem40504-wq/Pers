@@ -27,7 +27,7 @@ class GameAccessibilityService : AccessibilityService() {
         private const val DEBOUNCE_MS = 260L
         /** Upper bound for debounce: constantly animating UIs must still be read. */
         private const val MAX_WAIT_MS = 1_000L
-        private const val MAX_NODES = 100
+        private const val MAX_NODES = 200
         private const val MAX_CHARS = 1400
         private val WHITESPACE = Regex("\\s+")
 
@@ -70,7 +70,9 @@ class GameAccessibilityService : AccessibilityService() {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
             event.eventType != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED &&
             event.eventType != AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) return
-        val allowed = app.settings.load().selectedPackage
+        val settings = app.settings.load()
+        if (settings.audioMode) return // audio mode translates speech, not screen text
+        val allowed = settings.selectedPackage
         if (allowed.isBlank() || allowed == packageName || allowed == "com.android.systemui") return
         if (event.packageName?.toString() != allowed) return
 
@@ -108,7 +110,12 @@ class GameAccessibilityService : AccessibilityService() {
                 visited.add(node)
                 if (!node.isVisibleToUser || node.isPassword || node.isEditable ||
                     node.className?.toString()?.endsWith("EditText") == true) continue
-                val item = (node.text ?: node.contentDescription)?.toString()
+                // Only visible text, and not from controls: buttons, tabs and icons ("Поиск", "Подписаться",
+                // "0 минут 0 секунд из …") are interface, not content. Their children are still visited.
+                val className = node.className?.toString().orEmpty()
+                val isControl = node.isClickable || node.isLongClickable || node.isCheckable ||
+                    className.endsWith("Button") || className.endsWith("SeekBar") || className.endsWith("Tab")
+                val item = if (isControl) "" else node.text?.toString()
                     ?.replace(WHITESPACE, " ")?.trim().orEmpty()
                 if (item.length in 2..250 && totalChars + item.length <= MAX_CHARS && fragments.add(item)) {
                     totalChars += item.length

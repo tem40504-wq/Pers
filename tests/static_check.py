@@ -19,11 +19,11 @@ check('Internet/overlay/foreground permissions',
       {'android.permission.INTERNET','android.permission.SYSTEM_ALERT_WINDOW',
        'android.permission.FOREGROUND_SERVICE','android.permission.FOREGROUND_SERVICE_SPECIAL_USE'} <= perms)
 check('TTS engine query declared', any(el.get(android+'name') == 'android.intent.action.TTS_SERVICE' for el in manifest.findall('queries/intent/action')))
-check('No premature mic/capture permissions',
-      'android.permission.RECORD_AUDIO' not in perms and
-      'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION' not in perms)
+check('Audio capture permissions declared',
+      'android.permission.RECORD_AUDIO' in perms and
+      'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION' in perms)
 services = manifest.find('application').findall('service')
-check('Overlay FGS special use declaration', any(s.get(android+'foregroundServiceType') == 'specialUse' for s in services))
+check('Overlay FGS special use declaration', any('specialUse' in (s.get(android+'foregroundServiceType') or '') and 'mediaProjection' in (s.get(android+'foregroundServiceType') or '') for s in services))
 check('Accessibility protected by BIND_ACCESSIBILITY_SERVICE', any(s.get(android+'permission') == 'android.permission.BIND_ACCESSIBILITY_SERVICE' for s in services))
 
 service = src('capture/GameAccessibilityService.kt')
@@ -41,7 +41,7 @@ check('DeepL returns readable errors', all(k in src('data/DeepLTranslationReposi
 check('Foreground-service API 29-33 compatibility', 'Build.VERSION.SDK_INT >= 34' in src('platform/OverlayService.kt') and 'startForeground(33, createNotification())' in src('platform/OverlayService.kt'))
 check('Overlay drag constrained', 'coerceIn(0, maxX)' in src('platform/OverlayService.kt') and 'coerceIn(0, maxY)' in src('platform/OverlayService.kt'))
 check('TTS language checked', 'TextToSpeech.LANG_MISSING_DATA' in src('platform/TTSManager.kt'))
-check('Android SDK bounds', all(k in (R/'app/build.gradle.kts').read_text() for k in ['minSdk = 29','targetSdk = 35','versionName = "0.1.3"']))
+check('Android SDK bounds', all(k in (R/'app/build.gradle.kts').read_text() for k in ['minSdk = 29','targetSdk = 35','versionName = "0.2.0"']))
 gradle = (R/'app/build.gradle.kts').read_text()
 check('No kotlinOptions DSL (compile error since Kotlin 2.2)', not re.search(r'^\s*kotlinOptions\s*\{', gradle, re.M) and 'compilerOptions' in gradle)
 overlay = src('platform/OverlayService.kt')
@@ -62,5 +62,7 @@ ps = (R/'BUILD_WINDOWS.ps1').read_text()
 check('Build script writes local.properties', 'local.properties' in ps and 'sdk.dir' in ps)
 check('Offline ML Kit provider without key', 'TranslateLanguage' in src('data/MlKitTranslationRepository.kt') and 'RoutingTranslationRepository' in src('GameVoiceApp.kt') and 'com.google.mlkit:translate' in gradle)
 check('Fixed debug signing key', 'debug.keystore' in gradle and (R/'app/debug.keystore').exists())
+check('Audio mode: capture + Vosk + own TTS excluded', 'AudioPlaybackCaptureConfiguration' in (S/'audio/SpeechCaptureEngine.kt').read_text() and 'excludeUid' in (S/'audio/SpeechCaptureEngine.kt').read_text() and 'USAGE_ASSISTANT' in src('platform/TTSManager.kt'))
+check('Auto speak + foreign-only filter', 'results.collect' in src('platform/OverlayService.kt') and 'keepForeign' in src('GameVoiceApp.kt'))
 ET.parse(R/'app/src/main/res/xml/accessibility_service_config.xml')
 print('Static checks completed; actual APK build NOT verified.')

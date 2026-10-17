@@ -3,6 +3,7 @@ package dev.gamescreen.voice
 import android.app.Application
 import androidx.room.Room
 import dev.gamescreen.voice.data.DeepLTranslationRepository
+import dev.gamescreen.voice.data.ForeignTextFilter
 import dev.gamescreen.voice.data.HistoryDatabase
 import dev.gamescreen.voice.data.MlKitTranslationRepository
 import dev.gamescreen.voice.data.RoutingTranslationRepository
@@ -16,12 +17,14 @@ class GameVoiceApp : Application() {
     val database by lazy {
         Room.databaseBuilder(this, HistoryDatabase::class.java, "voice_history.db").build()
     }
+    private val foreignFilter by lazy { ForeignTextFilter() }
     val pipeline by lazy {
         TranslationPipeline(
             RoutingTranslationRepository(
                 DeepLTranslationRepository(secrets), MlKitTranslationRepository(), secrets, settings
             ),
-            settings, database.translations()
+            settings, database.translations(),
+            foreignFilter = { text, target -> foreignFilter.keepForeign(text, target) }
         )
     }
 }

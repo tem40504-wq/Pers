@@ -10,7 +10,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +23,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 private data class Captured(val packageName: String, val text: String)
+/** A finished translation for the voice-over; [queue] = append (speech) instead of interrupting (screen text). */
+data class Spoken(val text: String, val queue: Boolean)
+
 data class TranslationState(
     val original: String = "",
     val translated: String = "",
@@ -35,7 +42,9 @@ data class TranslationState(
 class TranslationPipeline(
     private val repository: TranslationRepository,
     private val settings: SettingsStore,
-    private val dao: TranslationDao
+    private val dao: TranslationDao,
+    /** Keeps only lines NOT already in the target language (screen-text mode). */
+    private val foreignFilter: (suspend (text: String, target: String) -> String)? = null
 ) {
     companion object {
         private const val DEMO_TEXT = "Hello world. This is a translation test."
@@ -47,6 +56,11 @@ class TranslationPipeline(
         private set
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val events = Channel<Captured>(Channel.CONFLATED)
+    // Recognised phrases: every phrase is translated, in order (unlike screen text, nothing is merged).
+    private val speechEvents = Channel<Captured>(16, BufferOverflow.DROP_OLDEST)
+    private val spoken = MutableSharedFlow<Spoken>(extraBufferCapacity = 16, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val results: SharedFlow<Spoken> = spoken.asSharedFlow()
+    private var speechJob: Job? = null
     private val mutableState = MutableStateFlow(TranslationState())
     val state: StateFlow<TranslationState> = mutableState.asStateFlow()
     private var job: Job? = null
@@ -74,7 +88,13 @@ class TranslationPipeline(
         retryAllowedAt = Long.MAX_VALUE
         isEnabled = true
         mutableState.value = TranslationState(status = "Ожидание текста выбранного приложения")
+        while (speechEvents.tryReceive().isSuccess) { }
         job = scope.launch { loop() }
+        speechJob = scope.launch {
+            for (phrase in speechEvents) {
+                if (isEnabled) process(phrase, speech = true)
+            }
+        }
     }
 
     private suspend fun loop() {
@@ -93,10 +113,22 @@ class TranslationPipeline(
         }
     }
 
-    private suspend fun process(capture: Captured, demo: Boolean = false) {
+    private suspend fun process(captureIn: Captured, demo: Boolean = false, speech: Boolean = false) {
         val s = settings.load()
         val source = s.sourceLang.trim().uppercase()
         val target = s.targetLang.trim().uppercase()
+        var capture = captureIn
+        // Screen text: drop lines that are already in the target language (e.g. Russian UI labels).
+        if (!speech && !demo && foreignFilter != null) {
+            val foreign = try { foreignFilter.invoke(capture.text, target) } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) { capture.text }
+            if (foreign.isBlank()) {
+                mutableState.value = TranslationState(capture.text, "", "Нет текста на иностранном языке")
+                return
+            }
+            capture = capture.copy(text = foreign)
+        }
         val cacheKey = key(capture.text, source, target)
         mutableState.value = TranslationState(capture.text, "", "Перевод...")
         try {
@@ -119,6 +151,7 @@ class TranslationPipeline(
             synchronized(cacheLock) { memoryCache[cacheKey] = result }
             val via = repository.label().let { if (it.isBlank()) "" else " · $it" }
             mutableState.value = TranslationState(capture.text, result, (if (demo) "Тест пройден" else "Готово") + via)
+            if (!demo) spoken.tryEmit(Spoken(result, queue = speech))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -144,6 +177,23 @@ class TranslationPipeline(
         events.trySend(Captured(packageName, clean))
     }
 
+    /** A finished phrase from speech recognition. */
+    fun submitSpeech(text: String) {
+        val clean = text.trim()
+        if (isEnabled && clean.isNotEmpty()) speechEvents.trySend(Captured("audio", clean.take(1400)))
+    }
+
+    /** Live (unfinished) recognition result shown as the original line. */
+    fun postPartial(text: String) {
+        if (!isEnabled || text.isBlank()) return
+        val current = mutableState.value
+        mutableState.value = current.copy(original = "\uD83C\uDFA4 $text", status = "Слушаю…")
+    }
+
+    fun postStatus(status: String) {
+        mutableState.value = mutableState.value.copy(status = status)
+    }
+
     /** Works with or without overlay/Accessibility; every press really calls the translator. */
     fun testTranslation() {
         preview?.cancel()
@@ -154,6 +204,9 @@ class TranslationPipeline(
         isEnabled = false
         job?.cancel()
         job = null
+        speechJob?.cancel()
+        speechJob = null
+        while (speechEvents.tryReceive().isSuccess) { }
         preview?.cancel()
         preview = null
         while (events.tryReceive().isSuccess) { }

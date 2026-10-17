@@ -11,6 +11,9 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import android.media.projection.MediaProjectionManager
+import dev.gamescreen.voice.GameVoiceApp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,6 +58,28 @@ class MainActivity : ComponentActivity() {
         overlayAllowed = Settings.canDrawOverlays(this)
     }
 
+    // Audio mode: RECORD_AUDIO -> screen-capture consent (Android requires it for capturing other apps' sound).
+    private val audioPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) requestProjection()
+        else Toast.makeText(this, "Без разрешения «Микрофон» звук приложений захватить нельзя", Toast.LENGTH_LONG).show()
+    }
+    private val projectionConsent = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val data = res.data
+        if (res.resultCode == RESULT_OK && data != null) {
+            launchService(Intent(this, OverlayService::class.java)
+                .putExtra(OverlayService.EXTRA_RESULT_CODE, res.resultCode)
+                .putExtra(OverlayService.EXTRA_RESULT_DATA, data))
+        } else {
+            Toast.makeText(this, "Захват звука отклонён. Нажмите «Запустить» ещё раз и выберите «Начать».",
+                Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun requestProjection() {
+        val manager = getSystemService(MediaProjectionManager::class.java)
+        projectionConsent.launch(manager.createScreenCaptureIntent())
+    }
+
     private fun startOverlay() {
         if (!Settings.canDrawOverlays(this)) {
             Toast.makeText(this, "Сначала разрешите отображение поверх окон", Toast.LENGTH_LONG).show()
@@ -65,12 +90,24 @@ class MainActivity : ComponentActivity() {
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
         }
-        try {
-            startForegroundService(Intent(this, OverlayService::class.java))
-            if (!GameAccessibilityService.isEnabled(this)) {
-                Toast.makeText(this, "Окно запущено, но Accessibility выключен — текст читаться не будет",
-                    Toast.LENGTH_LONG).show()
+        if ((application as GameVoiceApp).settings.load().audioMode) {
+            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                requestProjection()
+            } else {
+                audioPermission.launch(Manifest.permission.RECORD_AUDIO)
             }
+            return
+        }
+        launchService(Intent(this, OverlayService::class.java))
+        if (!GameAccessibilityService.isEnabled(this)) {
+            Toast.makeText(this, "Окно запущено, но Accessibility выключен — текст читаться не будет",
+                Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun launchService(intent: Intent) {
+        try {
+            startForegroundService(intent)
         } catch (e: RuntimeException) {
             Toast.makeText(this, "Не удалось запустить сервис: ${e.message}", Toast.LENGTH_LONG).show()
         }
@@ -101,8 +138,23 @@ private fun Screen(
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Text("GameScreen Voice 0.1.3", style = MaterialTheme.typography.headlineSmall)
-            Text("MVP: Accessibility → перевод (офлайн или DeepL) → плавающее окно → TTS")
+            Text("GameScreen Voice 0.2.0", style = MaterialTheme.typography.headlineSmall)
+            Text(if (s.audioMode) "Звук приложения → распознавание речи → перевод → озвучка"
+                else "Текст на экране → перевод → окно → озвучка")
+            Text("Режим", style = MaterialTheme.typography.titleSmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (s.audioMode) Button(onClick = {}, modifier = Modifier.weight(1f)) { Text("Звук (речь)") }
+                else OutlinedButton(onClick = { vm.edit(s.copy(audioMode = true)) }, modifier = Modifier.weight(1f)) { Text("Звук (речь)") }
+                if (!s.audioMode) Button(onClick = {}, modifier = Modifier.weight(1f)) { Text("Текст на экране") }
+                else OutlinedButton(onClick = { vm.edit(s.copy(audioMode = false)) }, modifier = Modifier.weight(1f)) { Text("Текст на экране") }
+            }
+            if (s.audioMode) {
+                Text("Переводит речь из видео и игр. Язык речи — поле «Из» (EN по умолчанию). При первом запуске " +
+                    "скачивается модель распознавания ~40 МБ, затем всё работает офлайн. Android попросит разрешения " +
+                    "«Микрофон» и «Запись/трансляция экрана» — это стандартный способ получить звук других приложений; " +
+                    "изображение не записывается. Некоторые приложения запрещают захват своего звука.",
+                    style = MaterialTheme.typography.bodySmall)
+            }
             Card { Column(Modifier.padding(12.dp)) {
                 Text("Согласие на обработку текста", style = MaterialTheme.typography.titleMedium)
                 Text("Сервис читает доступный для Accessibility текст только из указанного приложения. " +
@@ -112,13 +164,14 @@ private fun Screen(
                 Row { Checkbox(checked = s.consent, onCheckedChange = { vm.setConsent(it) })
                     Text("Согласен включить сервис с указанной обработкой данных", Modifier.padding(top = 12.dp)) }
             } }
-            Text("Accessibility: ${if (accessibilityOn) "✓ включено" else "✗ выключено"}   •   " +
+            Text((if (s.audioMode) "" else "Accessibility: ${if (accessibilityOn) "✓ включено" else "✗ выключено"}   •   ") +
                 "Окно поверх: ${if (overlayAllowed) "✓ разрешено" else "✗ не разрешено"}",
                 style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onOpenAccessibility, modifier = Modifier.weight(1f)) { Text("Accessibility") }
+                if (!s.audioMode) Button(onClick = onOpenAccessibility, modifier = Modifier.weight(1f)) { Text("Accessibility") }
                 Button(onClick = onOpenOverlay, modifier = Modifier.weight(1f)) { Text("Окно поверх") }
             }
+            if (!s.audioMode) {
             OutlinedTextField(
                 s.selectedPackage,
                 { vm.edit(s.copy(selectedPackage = it)) },
@@ -130,6 +183,7 @@ private fun Screen(
             Text("Для игр с графическими субтитрами потребуется отдельный OCR-модуль. " +
                 "Без указанного пакета автоматическое чтение отключено.",
                 style = MaterialTheme.typography.bodySmall)
+            }
             Text("Перевод: ${if (s.offlineOnly || !apiKeySaved) "офлайн на телефоне (бесплатно, без ключа)" else "DeepL"}",
                 style = MaterialTheme.typography.titleSmall)
             Text("Ключ DeepL необязателен. Без него перевод выполняется на телефоне через Google ML Kit; " +
@@ -161,6 +215,10 @@ private fun Screen(
             Slider(s.sizeScale, { vm.edit(s.copy(sizeScale = it)) }, valueRange = .7f..1.2f)
             Row { Switch(s.darkTheme, { vm.edit(s.copy(darkTheme = it)) });
                 Text("Тёмная тема", Modifier.padding(12.dp)) }
+            Row { Switch(s.autoSpeak, { vm.edit(s.copy(autoSpeak = it)) });
+                Text("Озвучивать перевод автоматически", Modifier.padding(12.dp)) }
+            Row { Switch(s.duckOriginal, { vm.edit(s.copy(duckOriginal = it)) });
+                Text("Приглушать оригинал во время озвучки (некоторые плееры ставят паузу)", Modifier.padding(12.dp)) }
             Row { Switch(s.offlineOnly, { vm.edit(s.copy(offlineOnly = it)) });
                 Text("Всегда офлайн-перевод, даже если есть ключ DeepL", Modifier.padding(12.dp)) }
             Row { Switch(s.keepHistory, { vm.edit(s.copy(keepHistory = it)) });
@@ -171,7 +229,7 @@ private fun Screen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = {
                     when {
-                        s.selectedPackage.trim().isBlank() ->
+                        !s.audioMode && s.selectedPackage.trim().isBlank() ->
                             savedMessage = "Укажите пакет приложения для чтения текста"
                         else -> {
                             vm.save(secret)

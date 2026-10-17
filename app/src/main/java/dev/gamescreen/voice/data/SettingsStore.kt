@@ -17,7 +17,13 @@ data class VoiceSettings(
     val keepHistory: Boolean = false,
     val consent: Boolean = false,
     /** Always use on-device ML Kit, even if a DeepL key is saved. */
-    val offlineOnly: Boolean = false
+    val offlineOnly: Boolean = false,
+    /** true = translate speech from the phone's audio; false = translate on-screen text (Accessibility). */
+    val audioMode: Boolean = true,
+    /** Speak every new translation automatically. */
+    val autoSpeak: Boolean = true,
+    /** Ask other apps to lower their volume while the translation is spoken (some players pause instead). */
+    val duckOriginal: Boolean = false
 )
 
 class SettingsStore(context: Context) {
@@ -37,7 +43,10 @@ class SettingsStore(context: Context) {
         darkTheme = prefs.getBoolean("dark", true),
         keepHistory = prefs.getBoolean("history", false),
         consent = prefs.getBoolean("consent", false),
-        offlineOnly = prefs.getBoolean("offline", false)
+        offlineOnly = prefs.getBoolean("offline", false),
+        audioMode = prefs.getBoolean("audio_mode", true),
+        autoSpeak = prefs.getBoolean("auto_speak", true),
+        duckOriginal = prefs.getBoolean("duck", false)
     )
     fun save(s: VoiceSettings) {
         prefs.edit()
@@ -53,6 +62,9 @@ class SettingsStore(context: Context) {
             .putBoolean("history", s.keepHistory)
             .putBoolean("consent", s.consent)
             .putBoolean("offline", s.offlineOnly)
+            .putBoolean("audio_mode", s.audioMode)
+            .putBoolean("auto_speak", s.autoSpeak)
+            .putBoolean("duck", s.duckOriginal)
             .apply()
     }
     /** Consent is stored immediately, independent of the «Save» button. */

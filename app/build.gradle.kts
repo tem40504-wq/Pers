@@ -13,8 +13,8 @@ android {
         applicationId = "dev.gamescreen.voice"
         minSdk = 29
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.1.3"
+        versionCode = 5
+        versionName = "0.2.0"
         // Phones only: x86/x86_64 ML Kit libraries (~37 MB) are for emulators.
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
@@ -64,4 +64,7 @@ dependencies {
     implementation("com.google.mlkit:translate:17.0.3")
     implementation("com.google.mlkit:language-id:17.0.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+    // Offline speech recognition (audio mode).
+    implementation("net.java.dev.jna:jna:5.13.0@aar")
+    implementation("com.alphacephei:vosk-android:0.3.47")
 }
