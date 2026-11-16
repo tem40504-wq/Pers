@@ -17,7 +17,6 @@ jobs:
     env:
       CI: "1"
       EXPO_NO_TELEMETRY: "1"
-      NODE_ENV: "production"
     steps:
       - uses: actions/checkout@v4
       - name: Java 17
@@ -44,10 +43,13 @@ jobs:
         working-directory: DomaFitApp
         run: |
           npm install --no-audit --no-fund
+          npx expo install --dev babel-preset-expo
           npx expo install --fix
           npx expo prebuild --platform android --no-install
       - name: Compile release APK
         working-directory: DomaFitApp/android
+        env:
+          NODE_ENV: production
         run: |
           chmod +x gradlew
           ./gradlew :app:assembleRelease --no-daemon --stacktrace
